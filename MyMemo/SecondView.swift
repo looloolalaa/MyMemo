@@ -10,36 +10,49 @@ import SwiftUI
 struct SecondView: View {
     @EnvironmentObject var memos: Memos
     @State var text: String
-    @State private var showingSaved = false
+    @State private var showingSaved: Bool = false
+    
     var item: Memo
     
     var body: some View {
         VStack {
             TextEditor(text: $text)
                 .padding()
+                .frame(minHeight: 40, maxHeight: 400)
+                .border(.gray)
+                
+            Button("Save") {
+                let fileManager = FileManager()
+                let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                let dataUrl = documentDirectory.appendingPathComponent(item.title)
+                
+                do {
+                    //document write
+                    try text.write(to: dataUrl, atomically: false, encoding: .utf8)
+                    
+                    //memos update
+                    let newMemo = Memo(title: item.title, content: text)
+                    memos.change(item: item, newItem: newMemo)
+                    
+                    self.showingSaved.toggle()
+                } catch {
+                    print("Error Writing File: \(error.localizedDescription)")
+                }
+                
+            }
+            .padding()
+            
             Spacer()
         }
         .navigationTitle(item.title)
-        .navigationBarTitleDisplayMode(.automatic)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Save") {
-                    let fileManager = FileManager()
-                    let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                    let dataUrl = documentDirectory.appendingPathComponent(item.title)
-                    
-                    do {
-                        //document write
-                        try text.write(to: dataUrl, atomically: false, encoding: .utf8)
-                        
-                        //memos update
-                        let newMemo = Memo(title: item.title, content: text)
-                        memos.change(item: item, newItem: newMemo)
-                        
-                        showingSaved.toggle()
-                    } catch {
-                        print("Error Writing File: \(error.localizedDescription)")
-                    }
+                Button(action: {
+                    //delete
+                }) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
                 }
             }
         }

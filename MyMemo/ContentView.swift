@@ -18,6 +18,9 @@ struct ContentView: View {
                         MemoIcon(memo: item)
                     }
                 }
+                NavigationLink(destination: EmptyView()) {
+                    EmptyView()
+                }
             }
             .navigationTitle("Memo")
         }
