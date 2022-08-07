@@ -11,6 +11,7 @@ struct Memo: Hashable {
     var title: String
     var image: String?
     var content: String
+    var url: URL
     
-    static let example = Memo(title: "temp.txt", content: "Hello, this is sample")
+    static let example = Memo(title: "temp.txt", content: "Hello, this is sample", url: URL(fileURLWithPath: ""))
 }

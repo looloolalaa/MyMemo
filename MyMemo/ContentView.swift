@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var memos: Memos
+    
     var body: some View {
         NavigationView {
             VStack {
@@ -17,12 +18,40 @@ struct ContentView: View {
                     NavigationLink(destination: SecondView(text: item.content, item: item)){
                         MemoIcon(memo: item)
                     }
+                    .isDetailLink(false)
+                    //Prevent pop back
+                    //because pushed onto the navigation stack
                 }
-                NavigationLink(destination: EmptyView()) {
-                    EmptyView()
+                
+                Button(action: {
+                    let newFileName = "file\(memos.itemsCount()+1)"
+                    let newFileContent = ""
+                    
+                    let fileManager = FileManager()
+                    let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                    let dataURL = documentURL.appendingPathComponent(newFileName)
+                    
+                    let newMemo = Memo(title: newFileName, content: newFileContent, url: dataURL)
+                    
+                    do {
+                        try newFileContent.write(to: dataURL, atomically: false, encoding: .utf8)
+                        memos.add(item: newMemo)
+                        
+                    } catch {
+                        print("Error Writing File: \(error.localizedDescription)")
+                    }
+                    
+                    
+                }){
+                    Image(systemName: "plus.circle.fill")
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .padding()
                 }
+                
             }
             .navigationTitle("Memo")
+            
         }
     }
 }

@@ -22,19 +22,16 @@ struct SecondView: View {
                 .border(.gray)
                 
             Button("Save") {
-                let fileManager = FileManager()
-                let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                let dataUrl = documentDirectory.appendingPathComponent(item.title)
-                
                 do {
                     //document write
-                    try text.write(to: dataUrl, atomically: false, encoding: .utf8)
+                    try text.write(to: item.url, atomically: false, encoding: .utf8)
                     
                     //memos update
-                    let newMemo = Memo(title: item.title, content: text)
+                    let newMemo = Memo(title: item.title, content: text, url: item.url)
                     memos.change(item: item, newItem: newMemo)
                     
                     self.showingSaved.toggle()
+                    
                 } catch {
                     print("Error Writing File: \(error.localizedDescription)")
                 }
@@ -49,7 +46,17 @@ struct SecondView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    //delete
+                    do {
+                        //document file delete
+                        let fileManager = FileManager()
+                        try fileManager.removeItem(at: item.url)
+                        
+                        //memos update
+                        memos.delete(item: item)
+                        
+                    } catch {
+                        print("Error Deleting File: \(error.localizedDescription)")
+                    }
                 }) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)

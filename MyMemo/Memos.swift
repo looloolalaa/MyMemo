@@ -24,12 +24,26 @@ class Memos: ObservableObject {
             for url in contents {
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
-                let memo = Memo(title: title, content: content)
+                let memo = Memo(title: title, content: content, url: url)
                 items.append(memo)
             }
             
         } catch {
             print("Error Reading File: \(error.localizedDescription)")
+        }
+    }
+    
+    func itemsCount() -> Int {
+        return items.count
+    }
+    
+    func add(item: Memo) {
+        items.append(item)
+    }
+    
+    func delete(item: Memo) {
+        if let index = items.firstIndex(of: item) {
+            items.remove(at: index)
         }
     }
     

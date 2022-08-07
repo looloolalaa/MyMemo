@@ -17,7 +17,7 @@ struct MemoIcon: View {
                 } else {
                     Image(systemName: "x.square")
                         .resizable()
-                        .frame(width: 40.0, height: 40.0)
+                        .frame(width: 40, height: 40)
                 }
                 Text(memo.title)
             }
@@ -28,6 +28,6 @@ struct MemoIcon: View {
 
 struct MemoIcon_Previews: PreviewProvider {
     static var previews: some View {
-        MemoIcon(memo: Memo(title: "temp.txt", content: "blah blah"))
+        MemoIcon(memo: Memo.example)
     }
 }
