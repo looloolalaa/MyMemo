@@ -9,13 +9,16 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @EnvironmentObject var memos: Memos
+    @StateObject var memos = Memos()
+    @State private var showingFileNameField = false
+    @State private var newFileName = ""
+    @State private var showingAlreadyExist = false
     
     var body: some View {
         NavigationView {
             VStack {
                 ForEach(memos.items, id: \.self) { item in
-                    NavigationLink(destination: SecondView(text: item.content, item: item)){
+                    NavigationLink(destination: SecondView(memos: memos, text: item.content, item: item)){
                         MemoIcon(memo: item)
                     }
                     .isDetailLink(false)
@@ -23,30 +26,44 @@ struct ContentView: View {
                     //because pushed onto the navigation stack
                 }
                 
-                Button(action: {
-                    let newFileName = "file\(memos.itemsCount()+1)"
-                    let newFileContent = ""
-                    
-                    let fileManager = FileManager()
-                    let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                    let dataURL = documentURL.appendingPathComponent(newFileName)
-                    
-                    let newMemo = Memo(title: newFileName, content: newFileContent, url: dataURL)
-                    
-                    do {
-                        try newFileContent.write(to: dataURL, atomically: false, encoding: .utf8)
-                        memos.add(item: newMemo)
+                if showingFileNameField {
+                    HStack {
+                        TextField("name", text: $newFileName)
+                            .padding(4)
+                            .frame(width: 80)
+                            .border(.gray, width: 1)
                         
-                    } catch {
-                        print("Error Writing File: \(error.localizedDescription)")
+                        Button("OK") {
+                            if !newFileName.isEmpty {
+                                if memos.add(fileName: newFileName) {
+                                    newFileName = ""
+                                } else {
+                                    showingAlreadyExist.toggle()
+                                }
+                            }
+                        }
                     }
-                    
-                    
+                    .alert(isPresented: $showingAlreadyExist) {
+                        Alert(title: Text("Already exists"))
+                    }
+                }
+                
+                //plus & minus button
+                Button(action: {
+                    showingFileNameField.toggle()
                 }){
-                    Image(systemName: "plus.circle.fill")
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .padding()
+                    if showingFileNameField {
+                        Image(systemName: "minus.circle.fill")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .padding()
+                            .foregroundColor(.red)
+                    } else {
+                        Image(systemName: "plus.circle.fill")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .padding()
+                    }
                 }
                 
             }
@@ -59,6 +76,5 @@ struct ContentView: View {
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .environmentObject(Memos())
     }
 }

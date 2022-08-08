@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SecondView: View {
-    @EnvironmentObject var memos: Memos
+    @ObservedObject var memos: Memos
     @State var text: String
     @State private var showingSaved: Bool = false
     
@@ -72,7 +72,7 @@ struct SecondView: View {
 struct SecondView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            SecondView(text: Memo.example.content, item: Memo.example)
+            SecondView(memos: Memos(), text: Memo.example.content, item: Memo.example)
                 .environmentObject(Memos())
         }
     }

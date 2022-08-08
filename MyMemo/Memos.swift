@@ -37,8 +37,29 @@ class Memos: ObservableObject {
         return items.count
     }
     
-    func add(item: Memo) {
-        items.append(item)
+    func add(fileName: String) -> Bool {
+        let newFileName = fileName
+        let newFileContent = ""
+
+        let fileManager = FileManager()
+        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let dataURL = documentURL.appendingPathComponent(newFileName)
+
+        let newMemo = Memo(title: newFileName, content: newFileContent, url: dataURL)
+        
+        //already exist
+        if fileManager.fileExists(atPath: dataURL.path) {
+            return false
+        }
+            
+        do {
+            try newFileContent.write(to: dataURL, atomically: false, encoding: .utf8)
+            items.append(newMemo)
+
+        } catch {
+            print("Error Writing File: \(error.localizedDescription)")
+        }
+        return true
     }
     
     func delete(item: Memo) {

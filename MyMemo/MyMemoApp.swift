@@ -9,11 +9,9 @@ import SwiftUI
 
 @main
 struct MyMemoApp: App {
-    @StateObject var memos = Memos()
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(memos)
         }
     }
 }
