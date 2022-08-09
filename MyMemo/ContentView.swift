@@ -17,7 +17,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                ForEach(memos.items, id: \.self) { item in
+                ForEach(memos.items, id: \.title) { item in
                     NavigationLink(destination: SecondView(memos: memos, text: item.content, item: item)){
                         MemoIcon(memo: item)
                     }
@@ -70,6 +70,7 @@ struct ContentView: View {
             .navigationTitle("Memo")
             
         }
+        .navigationViewStyle(.stack)
     }
 }
 

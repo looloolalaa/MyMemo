@@ -11,6 +11,7 @@ struct SecondView: View {
     @ObservedObject var memos: Memos
     @State var text: String
     @State private var showingSaved: Bool = false
+    @State private var showingConfirmDeleting: Bool = false
     
     var item: Memo
     
@@ -20,17 +21,52 @@ struct SecondView: View {
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
                 .border(.gray)
+                .onChange(of: text) { value in
+                    do {
+                        //memos update
+                        let newMemo = Memo(title: item.title, content: text, url: item.url)
+                        memos.change(item: item, newItem: newMemo)
+
+                        //document write
+                        try text.write(to: item.url, atomically: false, encoding: .utf8)
+
+//                        showingSaved.toggle()
+
+                    } catch {
+                        print("Error Writing File: \(error.localizedDescription)")
+                    }
+                }
+                .alert(isPresented: $showingConfirmDeleting) {
+                    //delete button
+                    Alert(title: Text("Are you sure?"),
+                          primaryButton: .cancel(),
+                          secondaryButton: .destructive(Text("Delete")) {
+                                do {
+                                    //document file delete
+                                    let fileManager = FileManager()
+                                    try fileManager.removeItem(at: item.url)
+                    
+                                    //memos update
+                                    memos.delete(item: item)
+                    
+                                } catch {
+                                    print("Error Deleting File: \(error.localizedDescription)")
+                                }
+                          }
+                    )
+                }
+                
                 
             Button("Save") {
                 do {
-                    //document write
-                    try text.write(to: item.url, atomically: false, encoding: .utf8)
-                    
                     //memos update
                     let newMemo = Memo(title: item.title, content: text, url: item.url)
                     memos.change(item: item, newItem: newMemo)
                     
-                    self.showingSaved.toggle()
+                    //document write
+                    try text.write(to: item.url, atomically: false, encoding: .utf8)
+                    
+//                        showingSaved.toggle()
                     
                 } catch {
                     print("Error Writing File: \(error.localizedDescription)")
@@ -38,34 +74,30 @@ struct SecondView: View {
                 
             }
             .padding()
+            .alert(isPresented: $showingSaved) {
+                Alert(title: Text("Saved!"))
+            }
+            
             
             Spacer()
+                
+                
         }
         .navigationTitle(item.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
-                    do {
-                        //document file delete
-                        let fileManager = FileManager()
-                        try fileManager.removeItem(at: item.url)
-                        
-                        //memos update
-                        memos.delete(item: item)
-                        
-                    } catch {
-                        print("Error Deleting File: \(error.localizedDescription)")
-                    }
+                    showingConfirmDeleting.toggle()
                 }) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
                 }
+                
             }
         }
-        .alert(isPresented: $showingSaved) {
-            Alert(title: Text("Saved!"))
-        }
+        
+        
     }
 }
 
@@ -73,7 +105,6 @@ struct SecondView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             SecondView(memos: Memos(), text: Memo.example.content, item: Memo.example)
-                .environmentObject(Memos())
         }
     }
 }

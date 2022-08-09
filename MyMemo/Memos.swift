@@ -70,8 +70,10 @@ class Memos: ObservableObject {
     
     func change(item: Memo, newItem: Memo) {
         if let index = items.firstIndex(of: item) {
-            items.remove(at: index)
-            items.insert(newItem, at: index)
+//            items.remove(at: index)
+//            items.insert(newItem, at: index)
+            
+            items[index].content = newItem.content
         }
     }
 }
