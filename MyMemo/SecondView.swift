@@ -10,7 +10,6 @@ import SwiftUI
 struct SecondView: View {
     @ObservedObject var memos: Memos
     @State var text: String
-    @State private var showingSaved: Bool = false
     @State private var showingConfirmDeleting: Bool = false
     
     var item: Memo
@@ -30,14 +29,12 @@ struct SecondView: View {
                         //document write
                         try text.write(to: item.url, atomically: false, encoding: .utf8)
 
-//                        showingSaved.toggle()
-
                     } catch {
                         print("Error Writing File: \(error.localizedDescription)")
                     }
                 }
+                //delete button
                 .alert(isPresented: $showingConfirmDeleting) {
-                    //delete button
                     Alert(title: Text("Are you sure?"),
                           primaryButton: .cancel(),
                           secondaryButton: .destructive(Text("Delete")) {
@@ -55,32 +52,8 @@ struct SecondView: View {
                           }
                     )
                 }
-                
-                
-            Button("Save") {
-                do {
-                    //memos update
-                    let newMemo = Memo(title: item.title, content: text, url: item.url)
-                    memos.change(item: item, newItem: newMemo)
-                    
-                    //document write
-                    try text.write(to: item.url, atomically: false, encoding: .utf8)
-                    
-//                        showingSaved.toggle()
-                    
-                } catch {
-                    print("Error Writing File: \(error.localizedDescription)")
-                }
-                
-            }
-            .padding()
-            .alert(isPresented: $showingSaved) {
-                Alert(title: Text("Saved!"))
-            }
-            
             
             Spacer()
-                
                 
         }
         .navigationTitle(item.title)
