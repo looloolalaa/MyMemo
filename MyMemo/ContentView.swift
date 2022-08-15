@@ -33,10 +33,12 @@ struct ContentView: View {
                             
                             Button("OK") {
                                 if !newFileName.isEmpty {
-                                    if memos.add(fileName: newFileName) {
-                                        newFileName = ""
-                                    } else {
-                                        showingAlreadyExist.toggle()
+                                    withAnimation(.easeInOut) {
+                                        if memos.add(fileName: newFileName) {
+                                            newFileName = ""
+                                        } else {
+                                            showingAlreadyExist.toggle()
+                                        }
                                     }
                                 }
                             }
@@ -47,6 +49,7 @@ struct ContentView: View {
                         .alert(isPresented: $showingAlreadyExist) {
                             Alert(title: Text("Already exists"))
                         }
+                        .transition(.opacity)
                     }
                     
                     
@@ -54,7 +57,9 @@ struct ContentView: View {
                     
                     //plus & minus button
                     Button(action: {
-                        showingFileNameField.toggle()
+                        withAnimation(.easeInOut) {
+                            showingFileNameField.toggle()
+                        }
                     }){
                         if showingFileNameField {
                             Image(systemName: "minus.circle.fill")
@@ -79,6 +84,7 @@ struct ContentView: View {
                         ForEach(memos.items, id: \.title) { item in
                             NavigationLink(destination: SecondView(memos: memos, text: item.content, item: item)){
                                 MemoIcon(memo: item)
+                                    .transition(.opacity)
                             }
                         }
                     }
