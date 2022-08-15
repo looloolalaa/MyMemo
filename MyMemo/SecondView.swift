@@ -53,12 +53,36 @@ struct SecondView: View {
                     )
                 }
             
+            
+            Button(action: {
+                //image upload
+            }) {
+                Image(systemName: "photo")
+                    .font(.title2)
+                    .padding()
+                    .padding(.horizontal)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(lineWidth: 1.5)
+                    )
+            }
+            .padding()
+            
+            
             Spacer()
                 
         }
-        .navigationTitle(item.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack {
+                    Image(systemName: "sun.max")
+                    Text(item.title)
+                        .bold()
+                }
+            }
+            
+            
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {
                     showingConfirmDeleting.toggle()
