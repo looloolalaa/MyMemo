@@ -52,7 +52,6 @@ struct ContentView: View {
                         .transition(.opacity)
                     }
                     
-                    
                     Spacer()
                     
                     //plus & minus button
