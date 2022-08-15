@@ -85,6 +85,7 @@ struct ContentView: View {
                             NavigationLink(destination: SecondView(memos: memos, text: item.content, item: item)){
                                 MemoIcon(memo: item)
                                     .transition(.opacity)
+                            
                             }
                         }
                     }
