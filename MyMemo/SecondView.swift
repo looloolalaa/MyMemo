@@ -20,7 +20,6 @@ struct SecondView: View {
                 Image(imageURL)
             }
             
-            
             TextEditor(text: $text)
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
