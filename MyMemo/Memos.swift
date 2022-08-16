@@ -21,6 +21,7 @@ class Memos: ObservableObject {
             //files urls
             let contents = try fileManager.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
             
+            //memo item
             for url in contents {
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
@@ -32,6 +33,8 @@ class Memos: ObservableObject {
             print("Error Reading File: \(error.localizedDescription)")
         }
     }
+    
+    
     
     func itemsCount() -> Int {
         return items.count

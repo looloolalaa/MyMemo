@@ -16,6 +16,11 @@ struct SecondView: View {
     
     var body: some View {
         VStack {
+            if let imageURL = item.image {
+                Image(imageURL)
+            }
+            
+            
             TextEditor(text: $text)
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
@@ -75,11 +80,8 @@ struct SecondView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                HStack {
-                    Image(systemName: "sun.max")
-                    Text(item.title)
-                        .bold()
-                }
+                Text(item.title)
+                    .bold()
             }
             
             
