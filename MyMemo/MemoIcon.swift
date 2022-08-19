@@ -12,12 +12,15 @@ struct MemoIcon: View {
     var body: some View {
         HStack {
             VStack {
-                if let imageName = memo.image {
-                    Image(imageName)
+                if let uiImage = memo.uiImage {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .frame(width: 45, height: 45)
+                        .cornerRadius(10)
                 } else {
                     Image(systemName: "x.square")
                         .resizable()
-                        .frame(width: 40, height: 40)
+                        .frame(width: 45, height: 45)
                 }
                 Text(memo.title)
             }

@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import UIKit
 
 struct Memo: Hashable {
     var title: String
-    var image: String?
+    var uiImage: UIImage?
     var content: String
     var url: URL
     
-    static let example = Memo(title: "temp.txt", content: "Hello, this is sample", url: URL(fileURLWithPath: ""))
+    static let example = Memo(title: "temp.txt", uiImage: UIImage(named: "dice"), content: "Hello, this is sample", url: URL(fileURLWithPath: ""))
 }

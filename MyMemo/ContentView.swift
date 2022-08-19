@@ -81,7 +81,7 @@ struct ContentView: View {
                 ScrollView {
                     LazyVGrid(columns: layout, spacing: 20) {
                         ForEach(memos.items, id: \.title) { item in
-                            NavigationLink(destination: SecondView(memos: memos, text: item.content, item: item)){
+                            NavigationLink(destination: SecondView(memos: memos, text: item.content, uiImage: item.uiImage, item: item)){
                                 MemoIcon(memo: item)
                                     .transition(.opacity)
                             }

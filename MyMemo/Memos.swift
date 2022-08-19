@@ -15,14 +15,14 @@ class Memos: ObservableObject {
         let fileManager = FileManager()
         
         //document url
-        let documentDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
         
         do {
             //files urls
-            let contents = try fileManager.contentsOfDirectory(at: documentDirectory, includingPropertiesForKeys: nil)
+            let allFileURLs = try fileManager.contentsOfDirectory(at: documentURL, includingPropertiesForKeys: nil)
             
             //memo item
-            for url in contents {
+            for url in allFileURLs {
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
                 let memo = Memo(title: title, content: content, url: url)
@@ -73,10 +73,7 @@ class Memos: ObservableObject {
     
     func change(item: Memo, newItem: Memo) {
         if let index = items.firstIndex(of: item) {
-//            items.remove(at: index)
-//            items.insert(newItem, at: index)
-            
-            items[index].content = newItem.content
+            items[index] = newItem
         }
     }
 }

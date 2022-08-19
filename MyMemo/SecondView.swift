@@ -12,13 +12,19 @@ struct SecondView: View {
     @State var text: String
     @State private var showingConfirmDeleting: Bool = false
     
+    @State var image: Image?
+    @State var uiImage: UIImage?
+    @State private var showingImagePicker = false
+    
     var item: Memo
     
     var body: some View {
         VStack {
-            if let imageURL = item.image {
-                Image(imageURL)
-            }
+            image?
+                .resizable()
+                .scaledToFit()
+                .cornerRadius(30)
+                .padding()
             
             TextEditor(text: $text)
                 .padding()
@@ -27,9 +33,9 @@ struct SecondView: View {
                 .onChange(of: text) { value in
                     do {
                         //memos update
-                        let newMemo = Memo(title: item.title, content: text, url: item.url)
+                        let newMemo = Memo(title: item.title, uiImage: uiImage, content: text, url: item.url)
                         memos.change(item: item, newItem: newMemo)
-
+                        
                         //document write
                         try text.write(to: item.url, atomically: false, encoding: .utf8)
 
@@ -59,7 +65,7 @@ struct SecondView: View {
             
             
             Button(action: {
-                //image upload
+                showingImagePicker.toggle()
             }) {
                 Image(systemName: "photo")
                     .font(.title2)
@@ -94,15 +100,34 @@ struct SecondView: View {
                 
             }
         }
-        
+        .onChange(of: uiImage) { _ in
+            loadImage()
+            
+            //memos update
+            let newMemo = Memo(title: item.title, uiImage: uiImage, content: text, url: item.url)
+            memos.change(item: item, newItem: newMemo)
+            
+        }
+        .sheet(isPresented: $showingImagePicker) {
+            ImagePicker(uiImage: $uiImage)
+        }
+        .onAppear() {
+            loadImage()
+        }
         
     }
+    
+    func loadImage() {
+        guard let uiImage = uiImage else { return }
+        image = Image(uiImage: uiImage)
+    }
+    
 }
 
 struct SecondView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            SecondView(memos: Memos(), text: Memo.example.content, item: Memo.example)
+            SecondView(memos: Memos(), text: Memo.example.content, image: Image("dice"), item: Memo.example)
         }
     }
 }
