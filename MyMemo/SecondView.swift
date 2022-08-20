@@ -10,10 +10,10 @@ import SwiftUI
 struct SecondView: View {
     @ObservedObject var memos: Memos
     @State var text: String
-    @State private var showingConfirmDeleting: Bool = false
-    
     @State var image: Image?
     @State var uiImage: UIImage?
+    
+    @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker = false
     
     var item: Memo
@@ -33,7 +33,7 @@ struct SecondView: View {
                 .onChange(of: text) { value in
                     do {
                         //memos update
-                        let newMemo = Memo(title: item.title, uiImage: uiImage, content: text, url: item.url)
+                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url)
                         memos.change(item: item, newItem: newMemo)
                         
                         //document write
@@ -49,12 +49,20 @@ struct SecondView: View {
                           primaryButton: .cancel(),
                           secondaryButton: .destructive(Text("Delete")) {
                                 do {
-                                    //document file delete
-                                    let fileManager = FileManager()
-                                    try fileManager.removeItem(at: item.url)
-                    
                                     //memos update
                                     memos.delete(item: item)
+                                    
+                                    //document text file delete
+                                    let fileManager = FileManager()
+                                    try fileManager.removeItem(at: item.url)
+                                    
+                                    //document image file delete
+                                    if let _  = item.uiImage {
+                                        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                                        let imagesURL = documentURL.appendingPathComponent("images")
+                                        let imageURL = imagesURL.appendingPathComponent(item.title)
+                                        try fileManager.removeItem(at: imageURL)
+                                    }
                     
                                 } catch {
                                     print("Error Deleting File: \(error.localizedDescription)")
@@ -104,8 +112,24 @@ struct SecondView: View {
             loadImage()
             
             //memos update
-            let newMemo = Memo(title: item.title, uiImage: uiImage, content: text, url: item.url)
+            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url)
             memos.change(item: item, newItem: newMemo)
+            
+            
+            //document file write
+            let fileManager = FileManager()
+            let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let imagesURL = documentURL.appendingPathComponent("images")
+            let imageURL = imagesURL.appendingPathComponent(item.title)
+            
+            let imageData = uiImage?.pngData()
+            
+            do {
+                try imageData?.write(to: imageURL)
+            } catch {
+                print("Error Writing File: \(error.localizedDescription)")
+            }
+            
             
         }
         .sheet(isPresented: $showingImagePicker) {

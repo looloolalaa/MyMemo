@@ -10,8 +10,9 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject var memos = Memos()
-    @State private var showingFileNameField = false
     @State private var newFileName = ""
+    
+    @State private var showingFileNameField = false
     @State private var showingAlreadyExist = false
     
     let layout = [

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 class Memos: ObservableObject {
     @Published var items: [Memo] = []
@@ -13,19 +14,51 @@ class Memos: ObservableObject {
     //read document files
     init() {
         let fileManager = FileManager()
-        
-        //document url
         let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let textsURL = documentURL.appendingPathComponent("texts")
+        let imagesURL = documentURL.appendingPathComponent("images")
         
+        
+        //create folder
+        do {
+            //texts folder
+            if !fileManager.fileExists(atPath: textsURL.path) {
+                try fileManager.createDirectory(at: textsURL, withIntermediateDirectories: false, attributes: nil)
+            } else {
+                print("texts directory exists")
+            }
+            
+            //images folder
+            if !fileManager.fileExists(atPath: imagesURL.path) {
+                try fileManager.createDirectory(at: imagesURL, withIntermediateDirectories: false, attributes: nil)
+            } else {
+                print("images directory exists")
+            }
+            
+        } catch {
+            print("Error Creating Directory: \(error.localizedDescription)")
+        }
+            
+        
+        //read texts
         do {
             //files urls
-            let allFileURLs = try fileManager.contentsOfDirectory(at: documentURL, includingPropertiesForKeys: nil)
+            let allTextFileURLs = try fileManager.contentsOfDirectory(at: textsURL, includingPropertiesForKeys: nil)
             
             //memo item
-            for url in allFileURLs {
+            for url in allTextFileURLs {
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
-                let memo = Memo(title: title, content: content, url: url)
+                var uiImage: UIImage?
+                
+                let imageURL = imagesURL.appendingPathComponent(title)
+                if fileManager.fileExists(atPath: imageURL.path) {
+                    if let data = try? Data(contentsOf: imageURL), let loaded = UIImage(data: data) {
+                        uiImage = loaded
+                    }
+                }
+                
+                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url)
                 items.append(memo)
             }
             
@@ -35,29 +68,25 @@ class Memos: ObservableObject {
     }
     
     
-    
-    func itemsCount() -> Int {
-        return items.count
-    }
-    
     func add(fileName: String) -> Bool {
         let newFileName = fileName
         let newFileContent = ""
 
         let fileManager = FileManager()
         let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let dataURL = documentURL.appendingPathComponent(newFileName)
+        let textsURL = documentURL.appendingPathComponent("texts")
+        let textURL = textsURL.appendingPathComponent(newFileName)
 
-        let newMemo = Memo(title: newFileName, content: newFileContent, url: dataURL)
+        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL)
         
         //already exist
-        if fileManager.fileExists(atPath: dataURL.path) {
+        if fileManager.fileExists(atPath: textURL.path) {
             return false
         }
             
         do {
-            try newFileContent.write(to: dataURL, atomically: false, encoding: .utf8)
             items.append(newMemo)
+            try newFileContent.write(to: textURL, atomically: false, encoding: .utf8)
 
         } catch {
             print("Error Writing File: \(error.localizedDescription)")

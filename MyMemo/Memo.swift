@@ -10,9 +10,9 @@ import UIKit
 
 struct Memo: Hashable {
     var title: String
-    var uiImage: UIImage?
     var content: String
+    var uiImage: UIImage?
     var url: URL
     
-    static let example = Memo(title: "temp.txt", uiImage: UIImage(named: "dice"), content: "Hello, this is sample", url: URL(fileURLWithPath: ""))
+    static let example = Memo(title: "temp.txt", content: "Hello, this is sample", uiImage: UIImage(named: "dice"), url: URL(fileURLWithPath: ""))
 }
