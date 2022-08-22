@@ -15,6 +15,7 @@ struct SecondView: View {
     
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker = false
+    @FocusState private var textFieldFocused: Bool
     
     var item: Memo
     
@@ -30,6 +31,7 @@ struct SecondView: View {
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
                 .border(.gray)
+                .focused($textFieldFocused)
                 .onChange(of: text) { value in
                     do {
                         //memos update
@@ -73,6 +75,9 @@ struct SecondView: View {
             
             
             Button(action: {
+                //dismiss key board
+                textFieldFocused = false
+                
                 showingImagePicker.toggle()
             }) {
                 Image(systemName: "photo")
