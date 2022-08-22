@@ -47,6 +47,9 @@ class Memos: ObservableObject {
             
             //memo item
             for url in allTextFileURLs {
+                let attr = try fileManager.attributesOfItem(atPath: url.path)
+                print(attr[FileAttributeKey.creationDate] as? Date)
+                
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
                 var uiImage: UIImage?

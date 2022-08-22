@@ -21,11 +21,48 @@ struct SecondView: View {
     
     var body: some View {
         VStack {
-            image?
-                .resizable()
-                .scaledToFit()
-                .cornerRadius(30)
-                .padding()
+            
+            if let image = image {
+                ZStack(alignment: .bottomTrailing) {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .cornerRadius(30)
+                        .padding()
+                    
+                    Button(action: {
+                        withAnimation {
+                            self.image = nil
+                        }
+                        
+                        //memos update
+                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url)
+                        memos.change(item: item, newItem: newMemo)
+                        
+                        //document delete
+                        do {
+                            let fileManager = FileManager()
+
+                            //document image file delete
+                            if let _  = item.uiImage {
+                                let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                                let imagesURL = documentURL.appendingPathComponent("images")
+                                let imageURL = imagesURL.appendingPathComponent(item.title)
+                                try fileManager.removeItem(at: imageURL)
+                            }
+
+                        } catch {
+                            print("Error Deleting File: \(error.localizedDescription)")
+                        }
+                        
+                    }) {
+                        Image(systemName: "x.circle.fill")
+                            .foregroundStyle(.white, .red)
+                    }
+                    .offset(x: -15, y: -15)
+                    
+                }
+            }
             
             TextEditor(text: $text)
                 .padding()
@@ -148,7 +185,10 @@ struct SecondView: View {
     
     func loadImage() {
         guard let uiImage = uiImage else { return }
-        image = Image(uiImage: uiImage)
+//        image = Image(uiImage: uiImage)
+        withAnimation {
+            image = Image(uiImage: uiImage)
+        }
     }
     
 }

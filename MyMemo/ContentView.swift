@@ -34,7 +34,7 @@ struct ContentView: View {
                             
                             Button("OK") {
                                 if !newFileName.isEmpty {
-                                    withAnimation(.easeInOut) {
+                                    withAnimation {
                                         if memos.add(fileName: newFileName) {
                                             newFileName = ""
                                         } else {
@@ -57,7 +57,7 @@ struct ContentView: View {
                     
                     //plus & minus button
                     Button(action: {
-                        withAnimation(.easeInOut) {
+                        withAnimation {
                             showingFileNameField.toggle()
                         }
                     }){
