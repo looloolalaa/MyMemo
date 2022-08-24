@@ -36,7 +36,7 @@ struct SecondView: View {
                         }
                         
                         //memos update
-                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url)
+                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url, creationDate: item.creationDate)
                         memos.change(item: item, newItem: newMemo)
                         
                         //document delete
@@ -72,7 +72,7 @@ struct SecondView: View {
                 .onChange(of: text) { value in
                     do {
                         //memos update
-                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url)
+                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url, creationDate: item.creationDate)
                         memos.change(item: item, newItem: newMemo)
                         
                         //document write
@@ -154,7 +154,7 @@ struct SecondView: View {
             loadImage()
             
             //memos update
-            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url)
+            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url, creationDate: item.creationDate)
             memos.change(item: item, newItem: newMemo)
             
             

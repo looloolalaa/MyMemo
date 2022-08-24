@@ -47,9 +47,6 @@ class Memos: ObservableObject {
             
             //memo item
             for url in allTextFileURLs {
-                let attr = try fileManager.attributesOfItem(atPath: url.path)
-                print(attr[FileAttributeKey.creationDate] as? Date)
-                
                 let title = url.lastPathComponent
                 let content = try String(contentsOf: url, encoding: .utf8)
                 var uiImage: UIImage?
@@ -61,13 +58,21 @@ class Memos: ObservableObject {
                     }
                 }
                 
-                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url)
+                let attr = try fileManager.attributesOfItem(atPath: url.path)
+                let creationDate = attr[FileAttributeKey.creationDate] as! Date
+                
+                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url, creationDate: creationDate)
                 items.append(memo)
+                
             }
             
         } catch {
             print("Error Reading File: \(error.localizedDescription)")
         }
+        
+        //sort by creation date
+        items.sort { $0.creationDate < $1.creationDate }
+        
     }
     
     
@@ -80,7 +85,7 @@ class Memos: ObservableObject {
         let textsURL = documentURL.appendingPathComponent("texts")
         let textURL = textsURL.appendingPathComponent(newFileName)
 
-        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL)
+        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL, creationDate: Date())
         
         //already exist
         if fileManager.fileExists(atPath: textURL.path) {
