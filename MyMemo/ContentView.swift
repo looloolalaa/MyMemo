@@ -30,6 +30,7 @@ struct ContentView: View {
                             TextField("name", text: $newFileName)
                                 .padding(7)
                                 .border(.gray, width: 1)
+//                                .textFieldStyle(.roundedBorder)
                             
                             
                             Button("OK") {
@@ -81,8 +82,8 @@ struct ContentView: View {
                 
                 ScrollView {
                     LazyVGrid(columns: layout, spacing: 20) {
-                        ForEach(memos.items, id: \.title) { item in
-                            NavigationLink(destination: SecondView(memos: memos, text: item.content, uiImage: item.uiImage, item: item)){
+                        ForEach(memos.items) { item in
+                            NavigationLink(destination: SecondView(memos: memos, text: item.content, uiImage: item.uiImage, title: item.title, item: item)){
                                 MemoIcon(memo: item)
                                     .transition(.opacity)
                             }

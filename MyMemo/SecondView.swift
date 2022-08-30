@@ -12,15 +12,90 @@ struct SecondView: View {
     @State var text: String
     @State var image: Image?
     @State var uiImage: UIImage?
+    @State var title: String
     
+    @State private var showingAlreadyExist = false
     @State private var showingConfirmDeleting: Bool = false
-    @State private var showingImagePicker = false
+    @State private var showingImagePicker: Bool = false
+    @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
     
     var item: Memo
     
     var body: some View {
         VStack {
+            HStack {
+                BackButton()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 10)
+                
+                TextField("empty", text: $title)
+                    .font(.headline)
+                    .padding(4)
+                    .frame(width: 130)
+                    .multilineTextAlignment(.center)
+                    .focused($titleFieldFocused)
+                
+                
+                HStack {
+                    if titleFieldFocused {
+                        Button("OK") {
+                            if !title.isEmpty && item.title != title {
+                                let fileManager = FileManager()
+                                let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                                let textsURL = documentURL.appendingPathComponent("texts")
+                                let newTextURL = textsURL.appendingPathComponent(title)
+                                
+                                if fileManager.fileExists(atPath: newTextURL.path) {
+                                    titleFieldFocused = true
+                                    showingAlreadyExist.toggle()
+                                    
+                                } else {
+                                    //memos update
+                                    var newMemo = item
+                                    newMemo.title = title
+                                    memos.change(item: item, newItem: newMemo)
+                                    
+                                    //document delete
+                                    do {
+                                        let textURL = textsURL.appendingPathComponent(item.title)
+                                        try fileManager.moveItem(at: textURL, to: newTextURL)
+                                        
+                                        //document image file delete
+                                        if let _  = item.uiImage {
+                                            let imagesURL = documentURL.appendingPathComponent("images")
+                                            
+                                            let imageURL = imagesURL.appendingPathComponent(item.title)
+                                            let newImageURL = imagesURL.appendingPathComponent(title)
+                                            
+                                            try fileManager.moveItem(at: imageURL, to: newImageURL)
+                                        }
+
+                                    } catch {
+                                        print("Error Moving File: \(error.localizedDescription)")
+                                    }
+                                    
+                                    titleFieldFocused = false
+                                }
+                            }
+                            
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: {
+                        showingConfirmDeleting.toggle()
+                    }) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.trailing, 10)
+                
+            }
+            .padding(.top, 10)
             
             if let image = image {
                 ZStack(alignment: .bottomTrailing) {
@@ -28,15 +103,20 @@ struct SecondView: View {
                         .resizable()
                         .scaledToFit()
                         .cornerRadius(30)
-                        .padding()
+                        .padding([.leading, .bottom, .trailing])
                     
+                    //image X button
                     Button(action: {
                         withAnimation {
                             self.image = nil
                         }
                         
                         //memos update
-                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url, creationDate: item.creationDate)
+//                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url, creationDate: item.creationDate)
+//                        memos.change(item: item, newItem: newMemo)
+                        
+                        var newMemo = item
+                        newMemo.uiImage = nil
                         memos.change(item: item, newItem: newMemo)
                         
                         //document delete
@@ -65,6 +145,7 @@ struct SecondView: View {
             }
             
             TextEditor(text: $text)
+                .disableAutocorrection(true)
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
                 .border(.gray)
@@ -72,7 +153,11 @@ struct SecondView: View {
                 .onChange(of: text) { value in
                     do {
                         //memos update
-                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url, creationDate: item.creationDate)
+//                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url, creationDate: item.creationDate)
+//                        memos.change(item: item, newItem: newMemo)
+                        
+                        var newMemo = item
+                        newMemo.content = text
                         memos.change(item: item, newItem: newMemo)
                         
                         //document write
@@ -110,7 +195,7 @@ struct SecondView: View {
                     )
                 }
             
-            
+            //image plus button
             Button(action: {
                 //dismiss key board
                 textFieldFocused = false
@@ -127,36 +212,25 @@ struct SecondView: View {
                     )
             }
             .padding()
+            .alert(isPresented: $showingAlreadyExist) {
+                Alert(title: Text("Already exists"))
+            }
             
             
             Spacer()
                 
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .principal) {
-                Text(item.title)
-                    .bold()
-            }
-            
-            
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: {
-                    showingConfirmDeleting.toggle()
-                }) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                }
-                
-            }
-        }
+        .navigationBarHidden(true)
         .onChange(of: uiImage) { _ in
             loadImage()
             
             //memos update
-            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url, creationDate: item.creationDate)
-            memos.change(item: item, newItem: newMemo)
+//            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url, creationDate: item.creationDate)
+//            memos.change(item: item, newItem: newMemo)
             
+            var newMemo = item
+            newMemo.uiImage = uiImage
+            memos.change(item: item, newItem: newMemo)
             
             //document file write
             let fileManager = FileManager()
@@ -196,7 +270,7 @@ struct SecondView: View {
 struct SecondView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            SecondView(memos: Memos(), text: Memo.example.content, image: Image("dice"), item: Memo.example)
+            SecondView(memos: Memos(), text: Memo.example.content, image: Image("dice"), title: "hello", item: Memo.example)
         }
     }
 }

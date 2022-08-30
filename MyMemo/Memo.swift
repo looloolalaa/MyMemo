@@ -8,7 +8,8 @@
 import Foundation
 import UIKit
 
-struct Memo: Hashable {
+struct Memo: Hashable, Identifiable {
+    var id = UUID()
     var title: String
     var content: String
     var uiImage: UIImage?

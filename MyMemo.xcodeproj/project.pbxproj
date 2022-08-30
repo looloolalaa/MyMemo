@@ -16,6 +16,7 @@
 		20A64AE1289680CF00245BE4 /* Memo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A64AE0289680CF00245BE4 /* Memo.swift */; };
 		20A64AE328969B5800245BE4 /* MemoIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A64AE228969B5800245BE4 /* MemoIcon.swift */; };
 		20ABA65D2899129100515426 /* SecondView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20ABA65C2899129100515426 /* SecondView.swift */; };
+		20B7DB6728BE0EE600228449 /* BackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B7DB6628BE0EE600228449 /* BackButton.swift */; };
 		20E6C92328AF76FD006ED042 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E6C92228AF76FD006ED042 /* ImagePicker.swift */; };
 /* End PBXBuildFile section */
 
@@ -30,6 +31,7 @@
 		20A64AE0289680CF00245BE4 /* Memo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Memo.swift; sourceTree = "<group>"; };
 		20A64AE228969B5800245BE4 /* MemoIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoIcon.swift; sourceTree = "<group>"; };
 		20ABA65C2899129100515426 /* SecondView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondView.swift; sourceTree = "<group>"; };
+		20B7DB6628BE0EE600228449 /* BackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackButton.swift; sourceTree = "<group>"; };
 		20E6C92228AF76FD006ED042 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -66,6 +68,7 @@
 				2040B2CF288E89CF009CC1EA /* texts */,
 				20224F68288A9FB400D47E86 /* ContentView.swift */,
 				20ABA65C2899129100515426 /* SecondView.swift */,
+				20B7DB6628BE0EE600228449 /* BackButton.swift */,
 				20E6C92228AF76FD006ED042 /* ImagePicker.swift */,
 				20A64AE228969B5800245BE4 /* MemoIcon.swift */,
 				20A64ADE2896807400245BE4 /* Memos.swift */,
@@ -164,6 +167,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20B7DB6728BE0EE600228449 /* BackButton.swift in Sources */,
 				20A64AE328969B5800245BE4 /* MemoIcon.swift in Sources */,
 				20A64ADF2896807400245BE4 /* Memos.swift in Sources */,
 				20224F69288A9FB400D47E86 /* ContentView.swift in Sources */,
