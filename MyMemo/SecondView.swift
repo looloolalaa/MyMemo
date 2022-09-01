@@ -17,6 +17,7 @@ struct SecondView: View {
     @State private var showingAlreadyExist = false
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker: Bool = false
+    @State private var titleFieldFocus: Bool = false
     @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
     
@@ -35,10 +36,15 @@ struct SecondView: View {
                     .frame(width: 130)
                     .multilineTextAlignment(.center)
                     .focused($titleFieldFocused)
+                    .onChange(of: titleFieldFocused) { focus in
+                        withAnimation {
+                            titleFieldFocus = focus
+                        }
+                    }
                 
                 
                 HStack {
-                    if titleFieldFocused {
+                    if titleFieldFocus {
                         Button("OK") {
                             if !title.isEmpty && item.title != title {
                                 let fileManager = FileManager()
@@ -145,7 +151,6 @@ struct SecondView: View {
             }
             
             TextEditor(text: $text)
-                .disableAutocorrection(true)
                 .padding()
                 .frame(minHeight: 40, maxHeight: 400)
                 .border(.gray)

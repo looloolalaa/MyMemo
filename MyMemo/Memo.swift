@@ -16,6 +16,7 @@ struct Memo: Hashable, Identifiable {
     
     var url: URL
     var creationDate: Date
+    var modificationDate: Date
     
-    static let example = Memo(title: "temp.txt", content: "Hello, this is sample", uiImage: UIImage(named: "dice"), url: URL(fileURLWithPath: ""), creationDate: Date())
+    static let example = Memo(title: "temp.txt", content: "Hello, this is sample", uiImage: UIImage(named: "dice"), url: URL(fileURLWithPath: ""), creationDate: Date(), modificationDate: Date())
 }

@@ -17,6 +17,7 @@
 		20A64AE328969B5800245BE4 /* MemoIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20A64AE228969B5800245BE4 /* MemoIcon.swift */; };
 		20ABA65D2899129100515426 /* SecondView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20ABA65C2899129100515426 /* SecondView.swift */; };
 		20B7DB6728BE0EE600228449 /* BackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20B7DB6628BE0EE600228449 /* BackButton.swift */; };
+		20E22DA528C0B64000D465EC /* Order.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E22DA428C0B64000D465EC /* Order.swift */; };
 		20E6C92328AF76FD006ED042 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E6C92228AF76FD006ED042 /* ImagePicker.swift */; };
 /* End PBXBuildFile section */
 
@@ -32,6 +33,7 @@
 		20A64AE228969B5800245BE4 /* MemoIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoIcon.swift; sourceTree = "<group>"; };
 		20ABA65C2899129100515426 /* SecondView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondView.swift; sourceTree = "<group>"; };
 		20B7DB6628BE0EE600228449 /* BackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackButton.swift; sourceTree = "<group>"; };
+		20E22DA428C0B64000D465EC /* Order.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Order.swift; sourceTree = "<group>"; };
 		20E6C92228AF76FD006ED042 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -72,6 +74,7 @@
 				20E6C92228AF76FD006ED042 /* ImagePicker.swift */,
 				20A64AE228969B5800245BE4 /* MemoIcon.swift */,
 				20A64ADE2896807400245BE4 /* Memos.swift */,
+				20E22DA428C0B64000D465EC /* Order.swift */,
 				20A64AE0289680CF00245BE4 /* Memo.swift */,
 				20224F66288A9FB400D47E86 /* MyMemoApp.swift */,
 				20224F6A288A9FB600D47E86 /* Assets.xcassets */,
@@ -170,6 +173,7 @@
 				20B7DB6728BE0EE600228449 /* BackButton.swift in Sources */,
 				20A64AE328969B5800245BE4 /* MemoIcon.swift in Sources */,
 				20A64ADF2896807400245BE4 /* Memos.swift in Sources */,
+				20E22DA528C0B64000D465EC /* Order.swift in Sources */,
 				20224F69288A9FB400D47E86 /* ContentView.swift in Sources */,
 				20E6C92328AF76FD006ED042 /* ImagePicker.swift in Sources */,
 				20ABA65D2899129100515426 /* SecondView.swift in Sources */,

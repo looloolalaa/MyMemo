@@ -29,8 +29,11 @@ struct ContentView: View {
                         HStack {
                             TextField("name", text: $newFileName)
                                 .padding(7)
-                                .border(.gray, width: 1)
-//                                .textFieldStyle(.roundedBorder)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(.gray, lineWidth: 1)
+                                )
+                                
                             
                             
                             Button("OK") {
@@ -79,6 +82,29 @@ struct ContentView: View {
                 
                 Divider()
                     .padding(10)
+                
+                HStack {
+                    Button(memos.order.factor.rawValue) {
+                        memos.order.reverse.toggle()
+                    }
+                    
+                    Divider()
+                    
+                    Button(action: {
+                        memos.order.reverse.toggle()
+//                        withAnimation {
+//                            memos.sortByOrder()
+//                        }
+                    }) {
+                        if memos.order.reverse {
+                            Image(systemName: "arrow.up")
+                        } else {
+                            Image(systemName: "arrow.down")
+                        }
+                    }
+                }
+                .frame(height: 20)
+                .padding([.horizontal, .bottom])
                 
                 ScrollView {
                     LazyVGrid(columns: layout, spacing: 20) {

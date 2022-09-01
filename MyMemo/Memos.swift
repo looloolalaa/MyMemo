@@ -10,6 +10,8 @@ import SwiftUI
 
 class Memos: ObservableObject {
     @Published var items: [Memo] = []
+    var order: Order = Order(factor: "creation", reverse: "false")
+    
     
     //read document files
     init() {
@@ -18,22 +20,31 @@ class Memos: ObservableObject {
         let textsURL = documentURL.appendingPathComponent("texts")
         let imagesURL = documentURL.appendingPathComponent("images")
         
+        let orderURL = documentURL.appendingPathComponent("order")
+        let factorURL = orderURL.appendingPathComponent("factor")
+        let reverseURL = orderURL.appendingPathComponent("reverse")
+        
         
         //create folder
         do {
             //texts folder
             if !fileManager.fileExists(atPath: textsURL.path) {
                 try fileManager.createDirectory(at: textsURL, withIntermediateDirectories: false, attributes: nil)
-            } else {
-                print("texts directory exists")
             }
             
             //images folder
             if !fileManager.fileExists(atPath: imagesURL.path) {
                 try fileManager.createDirectory(at: imagesURL, withIntermediateDirectories: false, attributes: nil)
-            } else {
-                print("images directory exists")
             }
+            
+            //order folder
+            if !fileManager.fileExists(atPath: orderURL.path) {
+                try fileManager.createDirectory(at: orderURL, withIntermediateDirectories: false, attributes: nil)
+                
+                try "creation".write(to: factorURL, atomically: false, encoding: .utf8)
+                try "false".write(to: reverseURL, atomically: false, encoding: .utf8)
+            }
+            
             
         } catch {
             print("Error Creating Directory: \(error.localizedDescription)")
@@ -60,19 +71,25 @@ class Memos: ObservableObject {
                 
                 let attr = try fileManager.attributesOfItem(atPath: url.path)
                 let creationDate = attr[FileAttributeKey.creationDate] as! Date
+                let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
                 
-                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url, creationDate: creationDate)
-                items.append(memo)
+                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url, creationDate: creationDate, modificationDate: modificationDate)
+                self.items.append(memo)
                 
+                
+                let factor = try String(contentsOf: factorURL, encoding: .utf8)
+                let reverse = try String(contentsOf: reverseURL, encoding: .utf8)
+                
+                self.order = Order(factor: factor, reverse: reverse)
             }
+            
             
         } catch {
             print("Error Reading File: \(error.localizedDescription)")
         }
         
-        //sort by creation date
-        items.sort { $0.creationDate < $1.creationDate }
         
+        sortByOrder()
     }
     
     
@@ -85,7 +102,7 @@ class Memos: ObservableObject {
         let textsURL = documentURL.appendingPathComponent("texts")
         let textURL = textsURL.appendingPathComponent(newFileName)
 
-        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL, creationDate: Date())
+        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL, creationDate: Date(), modificationDate: Date())
         
         //already exist
         if fileManager.fileExists(atPath: textURL.path) {
@@ -111,6 +128,30 @@ class Memos: ObservableObject {
     func change(item: Memo, newItem: Memo) {
         if let index = items.firstIndex(of: item) {
             items[index] = newItem
+        }
+    }
+    
+    
+    func sortByOrder() {
+        switch order.factor {
+        case .name:
+            if order.reverse {
+                items.sort { $0.title > $1.title }
+            } else {
+                items.sort { $0.title < $1.title }
+            }
+        case .creation:
+            if order.reverse {
+                items.sort { $0.creationDate > $1.creationDate }
+            } else {
+                items.sort { $0.creationDate < $1.creationDate }
+            }
+        case .modification:
+            if order.reverse {
+                items.sort { $0.modificationDate > $1.modificationDate }
+            } else {
+                items.sort { $0.modificationDate < $1.modificationDate }
+            }
         }
     }
 }
