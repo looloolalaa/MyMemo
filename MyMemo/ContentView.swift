@@ -9,11 +9,13 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @StateObject var memos = Memos()
-    @State private var newFileName = ""
+    @ObservedObject var memos: Memos
+    @State private var newFileName: String = ""
     
-    @State private var showingFileNameField = false
-    @State private var showingAlreadyExist = false
+    @State var order: Order
+    
+    @State private var showingFileNameField: Bool = false
+    @State private var showingAlreadyExist: Bool = false
     
     let layout = [
         GridItem(.flexible(maximum: 100)),
@@ -28,6 +30,7 @@ struct ContentView: View {
                     if showingFileNameField {
                         HStack {
                             TextField("name", text: $newFileName)
+                                .disableAutocorrection(true)
                                 .padding(7)
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 4)
@@ -82,21 +85,45 @@ struct ContentView: View {
                 
                 Divider()
                     .padding(10)
+                    .onAppear {
+                        memos.sortByOrder()
+                    }
                 
                 HStack {
-                    Button(memos.order.factor.rawValue) {
-                        memos.order.reverse.toggle()
+                    Picker("you pick", selection: $order.factor) {
+                        ForEach(SortBy.allCases) { sortBy in
+                            Text(sortBy.rawValue)
+                                .foregroundStyle(.red)
+                                .tag(sortBy)
+                                
+                        }
                     }
                     
                     Divider()
+                        .onChange(of: self.order) { order in
+                            memos.order = order
+                            withAnimation {
+                                memos.sortByOrder()
+                            }
+                            
+                            let fileManager = FileManager()
+                            let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+                            let orderURL = documentURL.appendingPathComponent("order")
+                            let factorURL = orderURL.appendingPathComponent("factor")
+                            let reverseURL = orderURL.appendingPathComponent("reverse")
+                            
+                            do {
+                                try (order.factor.rawValue).write(to: factorURL, atomically: false, encoding: .utf8)
+                                try String(order.reverse).write(to: reverseURL, atomically: false, encoding: .utf8)
+                            } catch {
+                                print("Error Writing File: \(error.localizedDescription)")
+                            }
+                        }
                     
                     Button(action: {
-                        memos.order.reverse.toggle()
-//                        withAnimation {
-//                            memos.sortByOrder()
-//                        }
+                        order.reverse.toggle()
                     }) {
-                        if memos.order.reverse {
+                        if order.reverse {
                             Image(systemName: "arrow.up")
                         } else {
                             Image(systemName: "arrow.down")
@@ -126,6 +153,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(memos: Memos(), order: Order())
     }
 }

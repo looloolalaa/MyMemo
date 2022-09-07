@@ -10,7 +10,7 @@ import SwiftUI
 
 class Memos: ObservableObject {
     @Published var items: [Memo] = []
-    var order: Order = Order(factor: "creation", reverse: "false")
+    var order: Order = Order()
     
     
     //read document files
@@ -116,6 +116,8 @@ class Memos: ObservableObject {
         } catch {
             print("Error Writing File: \(error.localizedDescription)")
         }
+        
+        sortByOrder()
         return true
     }
     
@@ -135,23 +137,11 @@ class Memos: ObservableObject {
     func sortByOrder() {
         switch order.factor {
         case .name:
-            if order.reverse {
-                items.sort { $0.title > $1.title }
-            } else {
-                items.sort { $0.title < $1.title }
-            }
+            items.sort { order.reverse ? $0.title > $1.title : $0.title < $1.title }
         case .creation:
-            if order.reverse {
-                items.sort { $0.creationDate > $1.creationDate }
-            } else {
-                items.sort { $0.creationDate < $1.creationDate }
-            }
+            items.sort { order.reverse ? $0.creationDate > $1.creationDate : $0.creationDate < $1.creationDate }
         case .modification:
-            if order.reverse {
-                items.sort { $0.modificationDate > $1.modificationDate }
-            } else {
-                items.sort { $0.modificationDate < $1.modificationDate }
-            }
+            items.sort { order.reverse ? $0.modificationDate > $1.modificationDate : $0.modificationDate < $1.modificationDate }
         }
     }
 }

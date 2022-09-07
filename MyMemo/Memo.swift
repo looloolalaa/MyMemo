@@ -8,8 +8,8 @@
 import Foundation
 import UIKit
 
-struct Memo: Hashable, Identifiable {
-    var id = UUID()
+struct Memo: Equatable, Identifiable {
+    let id = UUID()
     var title: String
     var content: String
     var uiImage: UIImage?
@@ -19,4 +19,13 @@ struct Memo: Hashable, Identifiable {
     var modificationDate: Date
     
     static let example = Memo(title: "temp.txt", content: "Hello, this is sample", uiImage: UIImage(named: "dice"), url: URL(fileURLWithPath: ""), creationDate: Date(), modificationDate: Date())
+}
+
+
+extension Date {
+    var getString: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return dateFormatter.string(from: self)
+    }
 }

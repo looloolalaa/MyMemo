@@ -18,6 +18,7 @@ struct SecondView: View {
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker: Bool = false
     @State private var titleFieldFocus: Bool = false
+    @State private var showingDate: Bool = false
     @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
     
@@ -31,6 +32,7 @@ struct SecondView: View {
                     .padding(.leading, 10)
                 
                 TextField("empty", text: $title)
+                    .disableAutocorrection(true)
                     .font(.headline)
                     .padding(4)
                     .frame(width: 130)
@@ -92,6 +94,26 @@ struct SecondView: View {
                     
                     Button(action: {
                         showingConfirmDeleting.toggle()
+                        
+                        let fileManger = FileManager()
+                        let documentURL = fileManger.urls(for: .documentDirectory, in: .userDomainMask).first!
+                        let textsURL = documentURL.appendingPathComponent("texts")
+                        let textURL = textsURL.appendingPathComponent(item.title)
+                        
+                        let imagesURL = documentURL.appendingPathComponent("images")
+                        let imageURL = imagesURL.appendingPathComponent(item.title)
+                        
+                        do {
+                            let attr = try fileManger.attributesOfItem(atPath: textURL.path)
+                            let modification = attr[FileAttributeKey.modificationDate] as! Date
+                            print(modification)
+                            
+                            let attr2 = try fileManger.attributesOfItem(atPath: imageURL.path)
+                            let modification2 = attr2[FileAttributeKey.modificationDate] as! Date
+                            print(modification2)
+                        } catch {
+                            print("Error Read File: \(error.localizedDescription)")
+                        }
                     }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
@@ -118,12 +140,9 @@ struct SecondView: View {
                         }
                         
                         //memos update
-//                        let newMemo = Memo(title: item.title, content: text, uiImage: nil, url: item.url, creationDate: item.creationDate)
-//                        memos.change(item: item, newItem: newMemo)
-                        
                         var newMemo = item
                         newMemo.uiImage = nil
-                        memos.change(item: item, newItem: newMemo)
+                        
                         
                         //document delete
                         do {
@@ -136,6 +155,14 @@ struct SecondView: View {
                                 let imageURL = imagesURL.appendingPathComponent(item.title)
                                 try fileManager.removeItem(at: imageURL)
                             }
+                            
+                            //document write
+                            try text.write(to: item.url, atomically: false, encoding: .utf8)
+
+                            let attr = try fileManager.attributesOfItem(atPath: item.url.path)
+                            let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
+                            newMemo.modificationDate = modificationDate
+                            memos.change(item: item, newItem: newMemo)
 
                         } catch {
                             print("Error Deleting File: \(error.localizedDescription)")
@@ -152,7 +179,7 @@ struct SecondView: View {
             
             TextEditor(text: $text)
                 .padding()
-                .frame(minHeight: 40, maxHeight: 400)
+                .frame(maxHeight: 300)
                 .border(.gray)
                 .focused($textFieldFocused)
                 .onChange(of: text) { value in
@@ -161,12 +188,17 @@ struct SecondView: View {
 //                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url, creationDate: item.creationDate)
 //                        memos.change(item: item, newItem: newMemo)
                         
-                        var newMemo = item
-                        newMemo.content = text
-                        memos.change(item: item, newItem: newMemo)
-                        
                         //document write
                         try text.write(to: item.url, atomically: false, encoding: .utf8)
+                        
+                        let fileManager = FileManager()
+                        let attr = try fileManager.attributesOfItem(atPath: item.url.path)
+                        let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
+                        
+                        var newMemo = item
+                        newMemo.content = text
+                        newMemo.modificationDate = modificationDate
+                        memos.change(item: item, newItem: newMemo)
 
                     } catch {
                         print("Error Writing File: \(error.localizedDescription)")
@@ -200,27 +232,59 @@ struct SecondView: View {
                     )
                 }
             
-            //image plus button
-            Button(action: {
-                //dismiss key board
-                textFieldFocused = false
+            ZStack(alignment: .leading) {
+
+                //image plus button
+                Button(action: {
+                    //dismiss key board
+                    textFieldFocused = false
+                    
+                    showingImagePicker.toggle()
+                }) {
+                    Image(systemName: "photo")
+                        .font(.title2)
+                        .padding()
+                        .padding(.horizontal)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(lineWidth: 1.5)
+                        )
+                }
+                .alert(isPresented: $showingAlreadyExist) {
+                    Alert(title: Text("Already exists"))
+                }
                 
-                showingImagePicker.toggle()
-            }) {
-                Image(systemName: "photo")
-                    .font(.title2)
-                    .padding()
-                    .padding(.horizontal)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(lineWidth: 1.5)
-                    )
+                .frame(maxWidth: .infinity)
+
+                
+                
+                HStack {
+                    Button(action: {
+                        showingDate.toggle()
+                    }) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(.leading)
+                    
+                    Spacer()
+                }
+                .padding(.leading)
+                
+                
             }
-            .padding()
-            .alert(isPresented: $showingAlreadyExist) {
-                Alert(title: Text("Already exists"))
-            }
+            .padding(.top)
+//            .border(.secondary)
             
+            VStack(alignment: .leading) {
+                Text("created: \(item.creationDate.getString)")
+                Text("modified: \(item.modificationDate.getString)")
+            }
+            .padding(.leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .font(.caption)
+            .foregroundColor(.gray)
+            .opacity(showingDate ? 1 : 0)
             
             Spacer()
                 
@@ -229,13 +293,6 @@ struct SecondView: View {
         .onChange(of: uiImage) { _ in
             loadImage()
             
-            //memos update
-//            let newMemo = Memo(title: item.title, content: text, uiImage: uiImage, url: item.url, creationDate: item.creationDate)
-//            memos.change(item: item, newItem: newMemo)
-            
-            var newMemo = item
-            newMemo.uiImage = uiImage
-            memos.change(item: item, newItem: newMemo)
             
             //document file write
             let fileManager = FileManager()
@@ -247,24 +304,37 @@ struct SecondView: View {
             
             do {
                 try imageData?.write(to: imageURL)
+                
+                //document write
+                try text.write(to: item.url, atomically: false, encoding: .utf8)
+
+                let attr = try fileManager.attributesOfItem(atPath: item.url.path)
+                let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
+                
+                var newMemo = item
+                newMemo.uiImage = uiImage
+                newMemo.modificationDate = modificationDate
+                memos.change(item: item, newItem: newMemo)
+                
             } catch {
                 print("Error Writing File: \(error.localizedDescription)")
             }
+            
             
             
         }
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(uiImage: $uiImage)
         }
-        .onAppear() {
+        .onAppear {
             loadImage()
         }
+        
         
     }
     
     func loadImage() {
         guard let uiImage = uiImage else { return }
-//        image = Image(uiImage: uiImage)
         withAnimation {
             image = Image(uiImage: uiImage)
         }
