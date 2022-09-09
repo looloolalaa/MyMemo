@@ -148,6 +148,7 @@ struct ContentView: View {
             }
             .navigationTitle("Memo")
         }
+        .navigationViewStyle(.stack)
     }
 }
 

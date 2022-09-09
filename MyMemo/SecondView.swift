@@ -48,6 +48,9 @@ struct SecondView: View {
                 HStack {
                     if titleFieldFocus {
                         Button("OK") {
+                            if item.title == title {
+                                titleFieldFocused = false
+                            }
                             if !title.isEmpty && item.title != title {
                                 let fileManager = FileManager()
                                 let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
@@ -94,26 +97,6 @@ struct SecondView: View {
                     
                     Button(action: {
                         showingConfirmDeleting.toggle()
-                        
-                        let fileManger = FileManager()
-                        let documentURL = fileManger.urls(for: .documentDirectory, in: .userDomainMask).first!
-                        let textsURL = documentURL.appendingPathComponent("texts")
-                        let textURL = textsURL.appendingPathComponent(item.title)
-                        
-                        let imagesURL = documentURL.appendingPathComponent("images")
-                        let imageURL = imagesURL.appendingPathComponent(item.title)
-                        
-                        do {
-                            let attr = try fileManger.attributesOfItem(atPath: textURL.path)
-                            let modification = attr[FileAttributeKey.modificationDate] as! Date
-                            print(modification)
-                            
-                            let attr2 = try fileManger.attributesOfItem(atPath: imageURL.path)
-                            let modification2 = attr2[FileAttributeKey.modificationDate] as! Date
-                            print(modification2)
-                        } catch {
-                            print("Error Read File: \(error.localizedDescription)")
-                        }
                     }) {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
