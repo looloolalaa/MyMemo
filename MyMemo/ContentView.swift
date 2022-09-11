@@ -10,10 +10,9 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var memos: Memos
-    @State private var newFileName: String = ""
-    
     @State var order: Order
     
+    @State private var newFileName: String = ""
     @State private var showingFileNameField: Bool = false
     @State private var showingAlreadyExist: Bool = false
     
@@ -22,6 +21,11 @@ struct ContentView: View {
         GridItem(.flexible(maximum: 100)),
         GridItem(.flexible(maximum: 100))
     ]
+    
+    init(memos: Memos) {
+        self.memos = memos
+        self.order = memos.order
+    }
     
     var body: some View {
         NavigationView {
@@ -154,6 +158,6 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(memos: Memos(), order: Order())
+        ContentView(memos: Memos())
     }
 }

@@ -12,7 +12,7 @@ struct MyMemoApp: App {
     @StateObject var memos: Memos = Memos()
     var body: some Scene {
         WindowGroup {
-            ContentView(memos: memos, order: memos.order)
+            ContentView(memos: memos)
         }
     }
 }

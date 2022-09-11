@@ -161,6 +161,7 @@ struct SecondView: View {
             }
             
             TextEditor(text: $text)
+                .disableAutocorrection(true)
                 .padding()
                 .frame(maxHeight: 300)
                 .border(.gray)

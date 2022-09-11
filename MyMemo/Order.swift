@@ -30,5 +30,4 @@ struct Order: Equatable {
         if let reverse = Bool(reverse) { self.reverse = reverse }
     }
     
-    static let example = Order()
 }
