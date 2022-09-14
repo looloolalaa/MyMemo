@@ -7,27 +7,20 @@
 
 import Foundation
 
+// sort type
 enum SortBy: String, CaseIterable, Identifiable {
     case name
     case creation
     case modification
     
-    var id: String { self.rawValue }
+    var id: String { self.rawValue } // ex) id of .creation == "creation"
 }
 
 struct Order: Equatable {
     var factor: SortBy
     var reverse: Bool
     
-    init() {
-        self.factor = .creation
-        self.reverse = false
-    }
-    
-    init(factor: String, reverse: String) {
-        self.init()
-        if let factor = SortBy(rawValue: factor) { self.factor = factor }
-        if let reverse = Bool(reverse) { self.reverse = reverse }
-    }
+    var factorString: String { factor.rawValue }
+    var reverseString: String { String(reverse) }
     
 }

@@ -8,41 +8,46 @@
 import Foundation
 import SwiftUI
 
+// memo items
 class Memos: ObservableObject {
     @Published var items: [Memo] = []
-    var order: Order = Order()
+    
+    // initial value: Sorted by creation & not reverse
+    var order: Order = Order(factor: SortBy.creation, reverse: false)
     
     
-    //read document files
+    
+    // read document files
     init() {
         let fileManager = FileManager()
-        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let textsURL = documentURL.appendingPathComponent("texts")
-        let imagesURL = documentURL.appendingPathComponent("images")
         
-        let orderURL = documentURL.appendingPathComponent("order")
-        let factorURL = orderURL.appendingPathComponent("factor")
-        let reverseURL = orderURL.appendingPathComponent("reverse")
+        // 3 folders
+        let textFolderURL = fileManager.textFolderURL
+        let imageFolderURL = fileManager.imageFolderURL
+        let orderFolderURL = fileManager.orderFolderURL
         
+        let factorFileURL = fileManager.factorFileURL
+        let reverseFileURL = fileManager.reverseFileURL
         
-        //create folder
+        // create 3 folders
         do {
-            //texts folder
-            if !fileManager.fileExists(atPath: textsURL.path) {
-                try fileManager.createDirectory(at: textsURL, withIntermediateDirectories: false, attributes: nil)
+            // create text folder
+            if !fileManager.fileExists(atPath: textFolderURL.path) {
+                try fileManager.createDirectory(at: textFolderURL, withIntermediateDirectories: false, attributes: nil)
             }
             
-            //images folder
-            if !fileManager.fileExists(atPath: imagesURL.path) {
-                try fileManager.createDirectory(at: imagesURL, withIntermediateDirectories: false, attributes: nil)
+            // create image folder
+            if !fileManager.fileExists(atPath: imageFolderURL.path) {
+                try fileManager.createDirectory(at: imageFolderURL, withIntermediateDirectories: false, attributes: nil)
             }
             
-            //order folder
-            if !fileManager.fileExists(atPath: orderURL.path) {
-                try fileManager.createDirectory(at: orderURL, withIntermediateDirectories: false, attributes: nil)
+            // create order folder
+            if !fileManager.fileExists(atPath: orderFolderURL.path) {
+                try fileManager.createDirectory(at: orderFolderURL, withIntermediateDirectories: false, attributes: nil)
                 
-                try "creation".write(to: factorURL, atomically: false, encoding: .utf8)
-                try "false".write(to: reverseURL, atomically: false, encoding: .utf8)
+                // init factor file & reverse file
+                try self.order.factorString.write(to: factorFileURL, atomically: false, encoding: .utf8)
+                try self.order.reverseString.write(to: reverseFileURL, atomically: false, encoding: .utf8)
             }
             
             
@@ -51,35 +56,48 @@ class Memos: ObservableObject {
         }
             
         
-        //read texts
+        // read textFolder
         do {
-            //files urls
-            let allTextFileURLs = try fileManager.contentsOfDirectory(at: textsURL, includingPropertiesForKeys: nil)
+            let allTextFileURLs = try fileManager.contentsOfDirectory(at: textFolderURL, includingPropertiesForKeys: nil)
             
-            //memo item
+            // read memo item
             for url in allTextFileURLs {
+                // "temp.txt"
                 let title = url.lastPathComponent
+                
+                // "this is the sample content!!"
                 let content = try String(contentsOf: url, encoding: .utf8)
+                
+                // uiImage == nil
                 var uiImage: UIImage?
                 
-                let imageURL = imagesURL.appendingPathComponent(title)
-                if fileManager.fileExists(atPath: imageURL.path) {
-                    if let data = try? Data(contentsOf: imageURL), let loaded = UIImage(data: data) {
+                let imageFileURL = fileManager.imageFileURL(title: title)
+                if fileManager.fileExists(atPath: imageFileURL.path) {
+                    if let data = try? Data(contentsOf: imageFileURL), let loaded = UIImage(data: data) {
                         uiImage = loaded
                     }
                 }
                 
                 let attr = try fileManager.attributesOfItem(atPath: url.path)
+                
+                // 2022-09-14 14:10:45
                 let creationDate = attr[FileAttributeKey.creationDate] as! Date
+                
+                // 2022-09-14 14:10:45
                 let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
                 
-                let memo = Memo(title: title, content: content, uiImage: uiImage, url: url, creationDate: creationDate, modificationDate: modificationDate)
-                self.items.append(memo)
                 
+                let newMemo = Memo(title: title, content: content, uiImage: uiImage, creationDate: creationDate, modificationDate: modificationDate)
+                self.items.append(newMemo)
                 
-                let factor = try String(contentsOf: factorURL, encoding: .utf8)
-                let reverse = try String(contentsOf: reverseURL, encoding: .utf8)
-                
+            }
+            
+            // read order
+            let factorString = try String(contentsOf: fileManager.factorFileURL, encoding: .utf8)
+            let reverseString = try String(contentsOf: fileManager.reverseFileURL, encoding: .utf8)
+           
+            // ex) factorString == "name" & reverseString == "true"
+            if let factor = SortBy(rawValue: factorString), let reverse = Bool(reverseString) {
                 self.order = Order(factor: factor, reverse: reverse)
             }
             
@@ -92,34 +110,50 @@ class Memos: ObservableObject {
         sortByOrder()
     }
     
+    func sortByOrder() {
+        switch order.factor {
+        case .name:
+            items.sort { order.reverse ? $0.title > $1.title : $0.title < $1.title }
+        case .creation:
+            items.sort { order.reverse ? $0.creationDate > $1.creationDate : $0.creationDate < $1.creationDate }
+        case .modification:
+            items.sort { order.reverse ? $0.modificationDate > $1.modificationDate : $0.modificationDate < $1.modificationDate }
+        }
+    }
     
-    func add(fileName: String) -> Bool {
-        let newFileName = fileName
-        let newFileContent = ""
-
+    
+    func isFileExists(newFileName: String) -> Bool {
         let fileManager = FileManager()
-        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let textsURL = documentURL.appendingPathComponent("texts")
-        let textURL = textsURL.appendingPathComponent(newFileName)
+        let newFileURL = fileManager.textFileURL(title: newFileName)
+    }
+    
 
-        let newMemo = Memo(title: newFileName, content: newFileContent, url: textURL, creationDate: Date(), modificationDate: Date())
+    func appendNewMemo(newFileName: String) -> Bool {
+        let fileManager = FileManager()
+        let newFileURL = fileManager.textFileURL(title: newFileName)
         
-        //already exist
-        if fileManager.fileExists(atPath: textURL.path) {
+        // already exist
+        if fileManager.fileExists(atPath: newFileURL.path) {
             return false
         }
-            
+        
+        // not already exist
+        let newFileContent = ""
+        let newMemo = Memo(title: newFileName, content: newFileContent, creationDate: Date(), modificationDate: Date())
+        
+        self.items.append(newMemo)
+        
         do {
-            items.append(newMemo)
-            try newFileContent.write(to: textURL, atomically: false, encoding: .utf8)
-
+            try newFileContent.write(to: newFileURL, atomically: false, encoding: .utf8)
         } catch {
             print("Error Writing File: \(error.localizedDescription)")
         }
         
         sortByOrder()
         return true
+        
     }
+    
     
     func delete(item: Memo) {
         if let index = items.firstIndex(of: item) {
@@ -133,15 +167,5 @@ class Memos: ObservableObject {
         }
     }
     
-    
-    func sortByOrder() {
-        switch order.factor {
-        case .name:
-            items.sort { order.reverse ? $0.title > $1.title : $0.title < $1.title }
-        case .creation:
-            items.sort { order.reverse ? $0.creationDate > $1.creationDate : $0.creationDate < $1.creationDate }
-        case .modification:
-            items.sort { order.reverse ? $0.modificationDate > $1.modificationDate : $0.modificationDate < $1.modificationDate }
-        }
-    }
+
 }

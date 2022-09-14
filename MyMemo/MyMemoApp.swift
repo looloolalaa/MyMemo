@@ -9,7 +9,9 @@ import SwiftUI
 
 @main
 struct MyMemoApp: App {
+    // share ContentView & SecondView
     @StateObject var memos: Memos = Memos()
+    
     var body: some Scene {
         WindowGroup {
             ContentView(memos: memos)

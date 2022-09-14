@@ -9,12 +9,13 @@ import SwiftUI
 
 struct SecondView: View {
     @ObservedObject var memos: Memos
-    @State var text: String
-    @State var image: Image?
-    @State var uiImage: UIImage?
     @State var title: String
+    @State var text: String
+    @State var uiImage: UIImage?
+    @State var image: Image?
     
-    @State private var showingAlreadyExist = false
+    
+    @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker: Bool = false
     @State private var titleFieldFocus: Bool = false
@@ -22,7 +23,15 @@ struct SecondView: View {
     @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
     
-    var item: Memo
+    let item: Memo
+    
+    init(memos: Memos, item: Memo) {
+        self.memos = memos
+        self.title = item.title
+        self.text = item.content
+        self.uiImage = item.uiImage
+        loadImage()
+    }
     
     var body: some View {
         VStack {
@@ -310,10 +319,6 @@ struct SecondView: View {
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(uiImage: $uiImage)
         }
-        .onAppear {
-            loadImage()
-        }
-        
         
     }
     
@@ -329,7 +334,7 @@ struct SecondView: View {
 struct SecondView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            SecondView(memos: Memos(), text: Memo.example.content, image: Image("dice"), title: "hello", item: Memo.example)
+            SecondView(memos: Memos(), item: Memo.example)
         }
     }
 }

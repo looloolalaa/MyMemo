@@ -46,7 +46,7 @@ struct ContentView: View {
                             Button("OK") {
                                 if !newFileName.isEmpty {
                                     withAnimation {
-                                        if memos.add(fileName: newFileName) {
+                                        if memos.appendNewMemo(newFileName: newFileName) {
                                             newFileName = ""
                                         } else {
                                             showingAlreadyExist.toggle()
@@ -140,7 +140,7 @@ struct ContentView: View {
                 ScrollView {
                     LazyVGrid(columns: layout, spacing: 20) {
                         ForEach(memos.items) { item in
-                            NavigationLink(destination: SecondView(memos: memos, text: item.content, uiImage: item.uiImage, title: item.title, item: item)){
+                            NavigationLink(destination: SecondView(memos: memos, item: item)){
                                 MemoIcon(memo: item)
                                     .transition(.opacity)
                             }
@@ -153,6 +153,7 @@ struct ContentView: View {
             .navigationTitle("Memo")
         }
         .navigationViewStyle(.stack)
+        // remove warning
     }
 }
 
