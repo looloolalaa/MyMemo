@@ -122,35 +122,31 @@ class Memos: ObservableObject {
     }
     
     
-    func isFileExists(newFileName: String) -> Bool {
+    func fileExists(newFileName: String) -> Bool {
         let fileManager = FileManager()
         let newFileURL = fileManager.textFileURL(title: newFileName)
+        
+        return fileManager.fileExists(atPath: newFileURL.path)
     }
     
 
-    func appendNewMemo(newFileName: String) -> Bool {
+    func appendNewMemo(newFileName: String) {
         let fileManager = FileManager()
         let newFileURL = fileManager.textFileURL(title: newFileName)
         
-        // already exist
-        if fileManager.fileExists(atPath: newFileURL.path) {
-            return false
-        }
-        
-        // not already exist
         let newFileContent = ""
         let newMemo = Memo(title: newFileName, content: newFileContent, creationDate: Date(), modificationDate: Date())
         
-        self.items.append(newMemo)
         
         do {
             try newFileContent.write(to: newFileURL, atomically: false, encoding: .utf8)
+            self.items.append(newMemo)
+            
         } catch {
             print("Error Writing File: \(error.localizedDescription)")
         }
         
         sortByOrder()
-        return true
         
     }
     
