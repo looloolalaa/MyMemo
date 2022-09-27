@@ -9,11 +9,10 @@ import SwiftUI
 
 struct SecondView: View {
     @ObservedObject var memos: Memos
-    @State var title: String
-    @State var text: String
-    @State var uiImage: UIImage?
-    @State var image: Image?
-    
+    @State private var title: String
+    @State private var text: String
+    @State private var uiImage: UIImage?
+    @State private var image: Image?
     
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
@@ -23,14 +22,20 @@ struct SecondView: View {
     @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
     
-    let item: Memo
+    var item: Memo
     
     init(memos: Memos, item: Memo) {
         self.memos = memos
-        self.title = item.title
-        self.text = item.content
-        self.uiImage = item.uiImage
-        loadImage()
+        self.item = item
+        
+        _title = State(initialValue: item.title)
+        _text = State(initialValue: item.content)
+        
+        if let uiImgSrc = item.uiImage {
+            _uiImage = State(initialValue: uiImgSrc)
+            _image = State(initialValue: Image(uiImage: uiImgSrc))
+        }
+        
     }
     
     var body: some View {
@@ -40,6 +45,7 @@ struct SecondView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 10)
                 
+                // title field
                 TextField("empty", text: $title)
                     .disableAutocorrection(true)
                     .font(.headline)
@@ -47,53 +53,35 @@ struct SecondView: View {
                     .frame(width: 130)
                     .multilineTextAlignment(.center)
                     .focused($titleFieldFocused)
-                    .onChange(of: titleFieldFocused) { focus in
+                    .onChange(of: titleFieldFocused) { _ in
                         withAnimation {
-                            titleFieldFocus = focus
+                            titleFieldFocus = titleFieldFocused
                         }
                     }
                 
                 
+                // title change field
                 HStack {
+                    // OK button
                     if titleFieldFocus {
+                        
+                        // title change func
                         Button("OK") {
+                            // no change
                             if item.title == title {
                                 titleFieldFocused = false
-                            }
-                            if !title.isEmpty && item.title != title {
-                                let fileManager = FileManager()
-                                let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                                let textsURL = documentURL.appendingPathComponent("texts")
-                                let newTextURL = textsURL.appendingPathComponent(title)
                                 
-                                if fileManager.fileExists(atPath: newTextURL.path) {
+                            } else if !title.isEmpty {
+                                
+                                // already exist
+                                if memos.fileExists(newFileName: self.title) {
+                                    
                                     titleFieldFocused = true
                                     showingAlreadyExist.toggle()
                                     
                                 } else {
-                                    //memos update
-                                    var newMemo = item
-                                    newMemo.title = title
-                                    memos.change(item: item, newItem: newMemo)
-                                    
-                                    //document delete
-                                    do {
-                                        let textURL = textsURL.appendingPathComponent(item.title)
-                                        try fileManager.moveItem(at: textURL, to: newTextURL)
-                                        
-                                        //document image file delete
-                                        if let _  = item.uiImage {
-                                            let imagesURL = documentURL.appendingPathComponent("images")
-                                            
-                                            let imageURL = imagesURL.appendingPathComponent(item.title)
-                                            let newImageURL = imagesURL.appendingPathComponent(title)
-                                            
-                                            try fileManager.moveItem(at: imageURL, to: newImageURL)
-                                        }
-
-                                    } catch {
-                                        print("Error Moving File: \(error.localizedDescription)")
-                                    }
+                                    // title change
+                                    memos.changeTitle(item: item, newTitle: self.title)
                                     
                                     titleFieldFocused = false
                                 }
@@ -104,6 +92,7 @@ struct SecondView: View {
                     
                     Spacer()
                     
+                    // red delete button
                     Button(action: {
                         showingConfirmDeleting.toggle()
                     }) {
@@ -117,6 +106,7 @@ struct SecondView: View {
             }
             .padding(.top, 10)
             
+            // image field
             if let image = image {
                 ZStack(alignment: .bottomTrailing) {
                     image
@@ -125,41 +115,9 @@ struct SecondView: View {
                         .cornerRadius(30)
                         .padding([.leading, .bottom, .trailing])
                     
-                    //image X button
+                    // image X button
                     Button(action: {
-                        withAnimation {
-                            self.image = nil
-                        }
-                        
-                        //memos update
-                        var newMemo = item
-                        newMemo.uiImage = nil
-                        
-                        
-                        //document delete
-                        do {
-                            let fileManager = FileManager()
-
-                            //document image file delete
-                            if let _  = item.uiImage {
-                                let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                                let imagesURL = documentURL.appendingPathComponent("images")
-                                let imageURL = imagesURL.appendingPathComponent(item.title)
-                                try fileManager.removeItem(at: imageURL)
-                            }
-                            
-                            //document write
-                            try text.write(to: item.url, atomically: false, encoding: .utf8)
-
-                            let attr = try fileManager.attributesOfItem(atPath: item.url.path)
-                            let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
-                            newMemo.modificationDate = modificationDate
-                            memos.change(item: item, newItem: newMemo)
-
-                        } catch {
-                            print("Error Deleting File: \(error.localizedDescription)")
-                        }
-                        
+                        self.uiImage = nil
                     }) {
                         Image(systemName: "x.circle.fill")
                             .foregroundStyle(.white, .red)
@@ -169,67 +127,32 @@ struct SecondView: View {
                 }
             }
             
+            // text field
             TextEditor(text: $text)
                 .disableAutocorrection(true)
                 .padding()
                 .frame(maxHeight: 300)
                 .border(.gray)
                 .focused($textFieldFocused)
-                .onChange(of: text) { value in
-                    do {
-                        //memos update
-//                        let newMemo = Memo(title: item.title, content: text, uiImage: item.uiImage, url: item.url, creationDate: item.creationDate)
-//                        memos.change(item: item, newItem: newMemo)
-                        
-                        //document write
-                        try text.write(to: item.url, atomically: false, encoding: .utf8)
-                        
-                        let fileManager = FileManager()
-                        let attr = try fileManager.attributesOfItem(atPath: item.url.path)
-                        let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
-                        
-                        var newMemo = item
-                        newMemo.content = text
-                        newMemo.modificationDate = modificationDate
-                        memos.change(item: item, newItem: newMemo)
-
-                    } catch {
-                        print("Error Writing File: \(error.localizedDescription)")
-                    }
+                .onChange(of: self.text) { _ in
+                    memos.changeContent(item: item, newContent: self.text)
                 }
                 //delete button
                 .alert(isPresented: $showingConfirmDeleting) {
                     Alert(title: Text("Are you sure?"),
                           primaryButton: .cancel(),
                           secondaryButton: .destructive(Text("Delete")) {
-                                do {
-                                    //memos update
-                                    memos.delete(item: item)
-                                    
-                                    //document text file delete
-                                    let fileManager = FileManager()
-                                    try fileManager.removeItem(at: item.url)
-                                    
-                                    //document image file delete
-                                    if let _  = item.uiImage {
-                                        let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                                        let imagesURL = documentURL.appendingPathComponent("images")
-                                        let imageURL = imagesURL.appendingPathComponent(item.title)
-                                        try fileManager.removeItem(at: imageURL)
-                                    }
-                    
-                                } catch {
-                                    print("Error Deleting File: \(error.localizedDescription)")
-                                }
+                                memos.delete(item: item)
                           }
                     )
                 }
             
+            // date & image button
             ZStack(alignment: .leading) {
 
-                //image plus button
+                // image plus button
                 Button(action: {
-                    //dismiss key board
+                    // dismiss key board
                     textFieldFocused = false
                     
                     showingImagePicker.toggle()
@@ -246,11 +169,10 @@ struct SecondView: View {
                 .alert(isPresented: $showingAlreadyExist) {
                     Alert(title: Text("Already exists"))
                 }
-                
                 .frame(maxWidth: .infinity)
 
                 
-                
+                // date info button
                 HStack {
                     Button(action: {
                         showingDate.toggle()
@@ -267,8 +189,9 @@ struct SecondView: View {
                 
             }
             .padding(.top)
-//            .border(.secondary)
             
+            
+            // date info
             VStack(alignment: .leading) {
                 Text("created: \(item.creationDate.getString)")
                 Text("modified: \(item.modificationDate.getString)")
@@ -283,38 +206,9 @@ struct SecondView: View {
                 
         }
         .navigationBarHidden(true)
-        .onChange(of: uiImage) { _ in
+        .onChange(of: self.uiImage) { _ in
             loadImage()
-            
-            
-            //document file write
-            let fileManager = FileManager()
-            let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-            let imagesURL = documentURL.appendingPathComponent("images")
-            let imageURL = imagesURL.appendingPathComponent(item.title)
-            
-            let imageData = uiImage?.pngData()
-            
-            do {
-                try imageData?.write(to: imageURL)
-                
-                //document write
-                try text.write(to: item.url, atomically: false, encoding: .utf8)
-
-                let attr = try fileManager.attributesOfItem(atPath: item.url.path)
-                let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
-                
-                var newMemo = item
-                newMemo.uiImage = uiImage
-                newMemo.modificationDate = modificationDate
-                memos.change(item: item, newItem: newMemo)
-                
-            } catch {
-                print("Error Writing File: \(error.localizedDescription)")
-            }
-            
-            
-            
+            memos.changeUIImage(item: item, newUIImage: self.uiImage)
         }
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(uiImage: $uiImage)
@@ -322,11 +216,18 @@ struct SecondView: View {
         
     }
     
+    // UIImage -> Image
     func loadImage() {
-        guard let uiImage = uiImage else { return }
+        guard let uiImage = uiImage else {
+            withAnimation {
+                image = nil
+            }
+            return
+        }
         withAnimation {
             image = Image(uiImage: uiImage)
         }
+        
     }
     
 }

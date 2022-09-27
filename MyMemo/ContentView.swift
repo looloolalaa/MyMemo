@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var memos: Memos
-    @State var order: Order
+    @State private var order: Order
     
     @State private var newFileName: String = ""
     @State private var showingFileNameField: Bool = false
@@ -31,6 +31,8 @@ struct ContentView: View {
         NavigationView {
             VStack(alignment: .trailing) {
                 HStack {
+                    
+                    // file name field
                     if showingFileNameField {
                         HStack {
                             TextField("name", text: $newFileName)
@@ -46,9 +48,12 @@ struct ContentView: View {
                             Button("OK") {
                                 if !newFileName.isEmpty {
                                     withAnimation {
-                                        if memos.appendNewMemo(newFileName: newFileName) {
+                                        // not exist
+                                        if !memos.fileExists(newFileName: newFileName) {
+                                            memos.appendNewMemo(newFileName: newFileName)
                                             newFileName = ""
                                         } else {
+                                            // already exist
                                             showingAlreadyExist.toggle()
                                         }
                                     }
@@ -89,11 +94,10 @@ struct ContentView: View {
                 
                 Divider()
                     .padding(10)
-                    .onAppear {
-                        memos.sortByOrder()
-                    }
                 
+                // order field
                 HStack {
+                    // picker
                     Picker("you pick", selection: $order.factor) {
                         ForEach(SortBy.allCases) { sortBy in
                             Text(sortBy.rawValue)
@@ -104,26 +108,11 @@ struct ContentView: View {
                     }
                     
                     Divider()
-                        .onChange(of: self.order) { order in
-                            memos.order = order
-                            withAnimation {
-                                memos.sortByOrder()
-                            }
-                            
-                            let fileManager = FileManager()
-                            let documentURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
-                            let orderURL = documentURL.appendingPathComponent("order")
-                            let factorURL = orderURL.appendingPathComponent("factor")
-                            let reverseURL = orderURL.appendingPathComponent("reverse")
-                            
-                            do {
-                                try (order.factor.rawValue).write(to: factorURL, atomically: false, encoding: .utf8)
-                                try String(order.reverse).write(to: reverseURL, atomically: false, encoding: .utf8)
-                            } catch {
-                                print("Error Writing File: \(error.localizedDescription)")
-                            }
+                        .onChange(of: self.order) { _ in
+                            memos.order = self.order
                         }
                     
+                    // arrow reverse
                     Button(action: {
                         order.reverse.toggle()
                     }) {
@@ -137,6 +126,7 @@ struct ContentView: View {
                 .frame(height: 20)
                 .padding([.horizontal, .bottom])
                 
+                // main scroll grid
                 ScrollView {
                     LazyVGrid(columns: layout, spacing: 20) {
                         ForEach(memos.items) { item in

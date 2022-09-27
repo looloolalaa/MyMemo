@@ -13,7 +13,22 @@ class Memos: ObservableObject {
     @Published var items: [Memo] = []
     
     // initial value: Sorted by creation & not reverse
-    var order: Order = Order(factor: SortBy.creation, reverse: false)
+    var order: Order = Order(factor: SortBy.creation, reverse: false) {
+        willSet(newOrder) {
+            let fileManager = FileManager()
+            
+            do {
+                try (newOrder.factor.rawValue).write(to: fileManager.factorFileURL, atomically: false, encoding: .utf8)
+                try String(newOrder.reverse).write(to: fileManager.reverseFileURL, atomically: false, encoding: .utf8)
+            } catch {
+                print("Error Writing File: \(error.localizedDescription)")
+            }
+        }
+        
+        didSet {
+            sortByOrder()
+        }
+    }
     
     
     
@@ -95,8 +110,8 @@ class Memos: ObservableObject {
             // read order
             let factorString = try String(contentsOf: fileManager.factorFileURL, encoding: .utf8)
             let reverseString = try String(contentsOf: fileManager.reverseFileURL, encoding: .utf8)
-           
             // ex) factorString == "name" & reverseString == "true"
+            
             if let factor = SortBy(rawValue: factorString), let reverse = Bool(reverseString) {
                 self.order = Order(factor: factor, reverse: reverse)
             }
@@ -111,13 +126,15 @@ class Memos: ObservableObject {
     }
     
     func sortByOrder() {
-        switch order.factor {
-        case .name:
-            items.sort { order.reverse ? $0.title > $1.title : $0.title < $1.title }
-        case .creation:
-            items.sort { order.reverse ? $0.creationDate > $1.creationDate : $0.creationDate < $1.creationDate }
-        case .modification:
-            items.sort { order.reverse ? $0.modificationDate > $1.modificationDate : $0.modificationDate < $1.modificationDate }
+        withAnimation {
+            switch order.factor {
+            case .name:
+                items.sort { order.reverse ? $0.title > $1.title : $0.title < $1.title }
+            case .creation:
+                items.sort { order.reverse ? $0.creationDate > $1.creationDate : $0.creationDate < $1.creationDate }
+            case .modification:
+                items.sort { order.reverse ? $0.modificationDate > $1.modificationDate : $0.modificationDate < $1.modificationDate }
+            }
         }
     }
     
@@ -134,16 +151,16 @@ class Memos: ObservableObject {
         let fileManager = FileManager()
         let newFileURL = fileManager.textFileURL(title: newFileName)
         
-        let newFileContent = ""
-        let newMemo = Memo(title: newFileName, content: newFileContent, creationDate: Date(), modificationDate: Date())
-        
-        
         do {
-            try newFileContent.write(to: newFileURL, atomically: false, encoding: .utf8)
-            self.items.append(newMemo)
+            // write new text file: Empty Content
+            try "".write(to: newFileURL, atomically: false, encoding: .utf8)
+            
+            // memos update
+            let newMemo = Memo(title: newFileName, content: "", creationDate: Date(), modificationDate: Date())
+            self.items.append(newMemo) // this may not reach
             
         } catch {
-            print("Error Writing File: \(error.localizedDescription)")
+            print("Error Appending File: \(error.localizedDescription)")
         }
         
         sortByOrder()
@@ -151,17 +168,110 @@ class Memos: ObservableObject {
     }
     
     
-    func delete(item: Memo) {
-        if let index = items.firstIndex(of: item) {
-            items.remove(at: index)
-        }
-    }
-    
-    func change(item: Memo, newItem: Memo) {
-        if let index = items.firstIndex(of: item) {
-            items[index] = newItem
-        }
-    }
-    
+    func changeTitle(item: Memo, newTitle: String) {
+        let fileManager = FileManager()
 
+        // file name move
+        do {
+            // text file move
+            try fileManager.moveItem(at: item.textFileURL, to: fileManager.textFileURL(title: newTitle))
+            
+            // image file move
+            if let _  = item.uiImage {
+                try fileManager.moveItem(at: item.imageFileURL, to: fileManager.imageFileURL(title: newTitle))
+            }
+    
+            
+            // memos update
+            if let index = items.firstIndex(of: item) {
+                items[index].title = newTitle
+            }
+            
+        } catch {
+            print("Error Moving File: \(error.localizedDescription)")
+        }
+        
+    }
+    
+    func changeContent(item: Memo, newContent: String) {
+        let fileManager = FileManager()
+        
+        do {
+            // text content change
+            try newContent.write(to: item.textFileURL, atomically: false, encoding: .utf8)
+            
+            // memos update
+            if let index = items.firstIndex(of: item) {
+                items[index].content = newContent
+                
+                let attr = try fileManager.attributesOfItem(atPath: item.textFileURL.path)
+                let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
+                items[index].modificationDate = modificationDate
+            }
+
+        } catch {
+            print("Error Writing File: \(error.localizedDescription)")
+        }
+        
+        sortByOrder()
+    }
+ 
+    
+    func delete(item: Memo) {
+        let fileManager = FileManager()
+        
+        do {
+            // text file delete
+            try fileManager.removeItem(at: item.textFileURL)
+            
+            // image file delete
+            if let _  = item.uiImage {
+                try fileManager.removeItem(at: item.imageFileURL)
+            }
+            
+            // memos update
+            if let index = items.firstIndex(of: item) {
+                items.remove(at: index)
+            }
+
+        } catch {
+            print("Error Deleting File: \(error.localizedDescription)")
+        }
+        
+    }
+    
+    func changeUIImage(item: Memo, newUIImage: UIImage?) {
+        let fileManager = FileManager()
+        
+        
+        do {
+            // image change
+            if let newUIImage = newUIImage {
+                let imageData = newUIImage.pngData()
+                
+                try imageData?.write(to: item.imageFileURL)
+            } else {
+                // image delete
+                try fileManager.removeItem(at: item.imageFileURL)
+            }
+            
+            // rewrite text file cause modificationDate
+            try item.content.write(to: item.textFileURL, atomically: false, encoding: .utf8)
+            
+            // memos update
+            if let index = items.firstIndex(of: item) {
+                items[index].uiImage = newUIImage
+                
+                let attr = try fileManager.attributesOfItem(atPath: item.textFileURL.path)
+                let modificationDate = attr[FileAttributeKey.modificationDate] as! Date
+                items[index].modificationDate = modificationDate
+            }
+            
+        } catch {
+            print("Error Changing File: \(error.localizedDescription)")
+        }
+        
+        sortByOrder()
+    }
+    
 }

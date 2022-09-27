@@ -10,7 +10,7 @@ import UIKit
 
 // memo item
 struct Memo: Equatable, Identifiable {
-    let id = UUID()
+    var id = UUID()
     var title: String
     var content: String
     var uiImage: UIImage?
