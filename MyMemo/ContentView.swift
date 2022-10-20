@@ -13,6 +13,7 @@ struct ContentView: View {
     @State private var order: Order
     
     @State private var newFileName: String = ""
+    @FocusState private var newFileNameFocused: Bool
     @State private var showingFileNameField: Bool = false
     @State private var showingAlreadyExist: Bool = false
     
@@ -33,41 +34,41 @@ struct ContentView: View {
                 HStack {
                     
                     // file name field
-                    if showingFileNameField {
-                        HStack {
-                            TextField("name", text: $newFileName)
-                                .disableAutocorrection(true)
-                                .padding(7)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(.gray, lineWidth: 1)
-                                )
-                                
+                    HStack {
+                        TextField("name", text: $newFileName)
+                            .disableAutocorrection(true)
+                            .padding(7)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .stroke(.gray, lineWidth: 1)
+                            )
+                            .focused($newFileNameFocused)
                             
-                            
-                            Button("OK") {
-                                if !newFileName.isEmpty {
-                                    withAnimation {
-                                        // not exist
-                                        if !memos.fileExists(newFileName: newFileName) {
-                                            memos.appendNewMemo(newFileName: newFileName)
-                                            newFileName = ""
-                                        } else {
-                                            // already exist
-                                            showingAlreadyExist.toggle()
-                                        }
+                        
+                        
+                        Button("OK") {
+                            if !newFileName.isEmpty {
+                                withAnimation {
+                                    // not exist
+                                    if !memos.fileExists(newFileName: newFileName) {
+                                        memos.appendNewMemo(newFileName: newFileName)
+                                        newFileName = ""
+                                    } else {
+                                        // already exist
+                                        showingAlreadyExist.toggle()
                                     }
                                 }
                             }
-                            .frame(height: 40)
-                            
                         }
-                        .padding(.leading, 80)
-                        .alert(isPresented: $showingAlreadyExist) {
-                            Alert(title: Text("Already exists"))
-                        }
-                        .transition(.opacity)
+                        .frame(height: 40)
+                        
                     }
+                    .padding(.leading, 80)
+                    .alert(isPresented: $showingAlreadyExist) {
+                        Alert(title: Text("Already exists"))
+                    }
+                    .opacity(showingFileNameField ? 1 : 0)
+
                     
                     Spacer()
                     
@@ -75,6 +76,12 @@ struct ContentView: View {
                     Button(action: {
                         withAnimation {
                             showingFileNameField.toggle()
+                        }
+                        
+                        if showingFileNameField {
+                            newFileNameFocused = true
+                        } else {
+                            newFileNameFocused = false
                         }
                     }){
                         if showingFileNameField {
@@ -137,6 +144,9 @@ struct ContentView: View {
                         }
                     }
                 }
+                .onTapGesture {
+                    hideKeyboard()
+                }
                 
                 
             }
@@ -146,6 +156,11 @@ struct ContentView: View {
         // remove warning
     }
 }
+
+func hideKeyboard() {
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+}
+
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {

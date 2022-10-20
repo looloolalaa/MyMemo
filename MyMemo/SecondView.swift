@@ -99,6 +99,7 @@ struct SecondView: View {
                         Image(systemName: "trash")
                             .foregroundColor(.red)
                     }
+                    .padding(.trailing, 4)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.trailing, 10)
@@ -147,60 +148,66 @@ struct SecondView: View {
                     )
                 }
             
-            // date & image button
-            ZStack(alignment: .leading) {
+            VStack {
+                // date & image button
+                ZStack(alignment: .leading) {
 
-                // image plus button
-                Button(action: {
-                    // dismiss key board
-                    textFieldFocused = false
-                    
-                    showingImagePicker.toggle()
-                }) {
-                    Image(systemName: "photo")
-                        .font(.title2)
-                        .padding()
-                        .padding(.horizontal)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(lineWidth: 1.5)
-                        )
-                }
-                .alert(isPresented: $showingAlreadyExist) {
-                    Alert(title: Text("Already exists"))
-                }
-                .frame(maxWidth: .infinity)
-
-                
-                // date info button
-                HStack {
+                    // image plus button
                     Button(action: {
-                        showingDate.toggle()
+                        // dismiss key board
+                        textFieldFocused = false
+                        
+                        showingImagePicker.toggle()
                     }) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.gray)
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .padding()
+                            .padding(.horizontal)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(lineWidth: 1.5)
+                            )
+                    }
+                    .alert(isPresented: $showingAlreadyExist) {
+                        Alert(title: Text("Already exists"))
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    
+                    // date info button
+                    HStack {
+                        Button(action: {
+                            showingDate.toggle()
+                        }) {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.leading)
+                        
+                        Spacer()
                     }
                     .padding(.leading)
                     
-                    Spacer()
+                    
+                }
+                .padding(.top)
+            
+                
+                // date info
+                VStack(alignment: .leading) {
+                    Text("created: \(item.creationDate.getString)")
+                    Text("modified: \(item.modificationDate.getString)")
                 }
                 .padding(.leading)
-                
-                
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.caption)
+                .foregroundColor(.gray)
+                .opacity(showingDate ? 1 : 0)
             }
-            .padding(.top)
-            
-            
-            // date info
-            VStack(alignment: .leading) {
-                Text("created: \(item.creationDate.getString)")
-                Text("modified: \(item.modificationDate.getString)")
+            .contentShape(Rectangle())
+            .onTapGesture {
+                hideKeyboard()
             }
-            .padding(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .font(.caption)
-            .foregroundColor(.gray)
-            .opacity(showingDate ? 1 : 0)
             
             Spacer()
                 

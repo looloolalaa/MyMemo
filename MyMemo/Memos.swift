@@ -71,7 +71,7 @@ class Memos: ObservableObject {
         }
             
         
-        // read textFolder
+        // read textFolder & read image
         do {
             let allTextFileURLs = try fileManager.contentsOfDirectory(at: textFolderURL, includingPropertiesForKeys: nil)
             
@@ -114,6 +114,7 @@ class Memos: ObservableObject {
             
             if let factor = SortBy(rawValue: factorString), let reverse = Bool(reverseString) {
                 self.order = Order(factor: factor, reverse: reverse)
+                // this does not trigger (willSet & didSet) because it is included in "init()"
             }
             
             
