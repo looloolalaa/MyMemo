@@ -83,6 +83,7 @@ struct ContentView: View {
                         } else {
                             newFileNameFocused = false
                         }
+                        
                     }){
                         if showingFileNameField {
                             Image(systemName: "minus.circle.fill")

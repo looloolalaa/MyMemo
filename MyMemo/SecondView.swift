@@ -13,6 +13,10 @@ struct SecondView: View {
     @State private var text: String
     @State private var uiImage: UIImage?
     @State private var image: Image?
+    @State private var imageSacle: CGFloat = 1
+    let minScale: CGFloat = 0.5
+    let maxScale: CGFloat = 3
+    
     
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
@@ -115,6 +119,20 @@ struct SecondView: View {
                         .scaledToFit()
                         .cornerRadius(30)
                         .padding([.leading, .bottom, .trailing])
+                        .scaleEffect(imageSacle)
+                        .gesture(
+                            MagnificationGesture()
+                                .onChanged { newScale in
+                                    if newScale > maxScale { imageSacle = maxScale }
+                                    else if newScale < minScale { imageSacle = minScale }
+                                    else { imageSacle = newScale }
+                                }
+                        )
+                        .onTapGesture {
+                            withAnimation {
+                                imageSacle = 1
+                            }
+                        }
                     
                     // image X button
                     Button(action: {
@@ -126,6 +144,7 @@ struct SecondView: View {
                     .offset(x: -15, y: -15)
                     
                 }
+                
             }
             
             // text field
