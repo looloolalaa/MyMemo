@@ -242,6 +242,8 @@ struct SecondView: View {
             ImagePicker(uiImage: $uiImage)
         }
         .contentShape(Rectangle())
+        
+        // back func - left drag gesture
         .gesture(DragGesture().updating($dragOffset) { (value, state, transaction) in
             if value.translation.width > 80 {
                 presentationMode.wrappedValue.dismiss()
