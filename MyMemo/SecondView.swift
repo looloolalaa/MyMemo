@@ -16,7 +16,9 @@ struct SecondView: View {
     @State private var imageSacle: CGFloat = 1
     let minScale: CGFloat = 0.5
     let maxScale: CGFloat = 3
-    
+    @GestureState private var dragOffset = CGSize.zero
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+    // back func
     
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
@@ -239,6 +241,12 @@ struct SecondView: View {
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(uiImage: $uiImage)
         }
+        .contentShape(Rectangle())
+        .gesture(DragGesture().updating($dragOffset) { (value, state, transaction) in
+            if value.translation.width > 80 {
+                presentationMode.wrappedValue.dismiss()
+            }
+        })
         
     }
     

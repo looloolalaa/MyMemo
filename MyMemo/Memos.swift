@@ -248,7 +248,8 @@ class Memos: ObservableObject {
         do {
             // image change
             if let newUIImage = newUIImage {
-                let imageData = newUIImage.pngData()
+//                let imageData = newUIImage.pngData()
+                let imageData = newUIImage.jpegData(compressionQuality: 0.9)
                 
                 try imageData?.write(to: item.imageFileURL)
             } else {
