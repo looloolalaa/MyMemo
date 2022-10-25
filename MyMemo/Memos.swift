@@ -241,6 +241,7 @@ class Memos: ObservableObject {
         
     }
     
+    // change & remove
     func changeUIImage(item: Memo, newUIImage: UIImage?) {
         let fileManager = FileManager()
         
@@ -250,6 +251,7 @@ class Memos: ObservableObject {
             if let newUIImage = newUIImage {
 //                let imageData = newUIImage.pngData()
                 let imageData = newUIImage.jpegData(compressionQuality: 0.9)
+                // 0(low quality) ~ 1.0(high quality)
                 
                 try imageData?.write(to: item.imageFileURL)
             } else {
