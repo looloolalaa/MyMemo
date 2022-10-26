@@ -13,6 +13,7 @@ struct SecondView: View {
     @State private var text: String
     @State private var uiImage: UIImage?
     @State private var image: Image?
+    @State private var showingProgress: Bool = false
     @State private var imageSacle: CGFloat = 1
     let minScale: CGFloat = 0.5
     let maxScale: CGFloat = 3
@@ -64,6 +65,9 @@ struct SecondView: View {
                             titleFieldFocus = titleFieldFocused
                         }
                     }
+                    .onSubmit {
+                        changeTitle()
+                    }
                 
                 
                 // title change field
@@ -73,26 +77,7 @@ struct SecondView: View {
                         
                         // title change func
                         Button("OK") {
-                            // no change
-                            if item.title == title {
-                                titleFieldFocused = false
-                                
-                            } else if !title.isEmpty {
-                                
-                                // already exist
-                                if memos.fileExists(newFileName: self.title) {
-                                    
-                                    titleFieldFocused = true
-                                    showingAlreadyExist.toggle()
-                                    
-                                } else {
-                                    // title change
-                                    memos.changeTitle(item: item, newTitle: self.title)
-                                    
-                                    titleFieldFocused = false
-                                }
-                            }
-                            
+                            changeTitle()
                         }
                     }
                     
@@ -112,6 +97,11 @@ struct SecondView: View {
                 
             }
             .padding(.top, 10)
+            
+            if showingProgress {
+                ProgressView()
+                    .padding()
+            }
             
             // image field
             if let image = image {
@@ -177,7 +167,6 @@ struct SecondView: View {
                     Button(action: {
                         // dismiss key board
                         textFieldFocused = false
-                        
                         showingImagePicker.toggle()
                     }) {
                         Image(systemName: "photo")
@@ -249,7 +238,35 @@ struct SecondView: View {
                 presentationMode.wrappedValue.dismiss()
             }
         })
+        .onChange(of: showingImagePicker) { _ in
+            withAnimation {
+                showingProgress = showingImagePicker
+            }
+        }
         
+    }
+    
+    // enter key action
+    func changeTitle() {
+        // no change
+        if item.title == title {
+            titleFieldFocused = false
+            
+        } else if !title.isEmpty {
+            
+            // already exist
+            if memos.fileExists(newFileName: self.title) {
+                
+                titleFieldFocused = true
+                showingAlreadyExist.toggle()
+                
+            } else {
+                // title change
+                memos.changeTitle(item: item, newTitle: self.title)
+                
+                titleFieldFocused = false
+            }
+        }
     }
     
     // UIImage -> Image

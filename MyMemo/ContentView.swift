@@ -43,22 +43,14 @@ struct ContentView: View {
                                     .stroke(.gray, lineWidth: 1)
                             )
                             .focused($newFileNameFocused)
+                            .onSubmit {
+                                appendNewMemo()
+                            }
                             
                         
                         
                         Button("OK") {
-                            if !newFileName.isEmpty {
-                                withAnimation {
-                                    // not exist
-                                    if !memos.fileExists(newFileName: newFileName) {
-                                        memos.appendNewMemo(newFileName: newFileName)
-                                        newFileName = ""
-                                    } else {
-                                        // already exist
-                                        showingAlreadyExist.toggle()
-                                    }
-                                }
-                            }
+                            appendNewMemo()
                         }
                         .frame(height: 40)
                         
@@ -156,7 +148,27 @@ struct ContentView: View {
         .navigationViewStyle(.stack)
         // remove warning
     }
+    
+    // enter key action
+    func appendNewMemo() {
+        if !newFileName.isEmpty {
+            withAnimation {
+                // not exist
+                if !memos.fileExists(newFileName: newFileName) {
+                    memos.appendNewMemo(newFileName: newFileName)
+                    newFileName = ""
+                    hideKeyboard()
+                } else {
+                    // already exist
+                    showingAlreadyExist.toggle()
+                }
+            }
+        }
+    }
+    
 }
+
+
 
 func hideKeyboard() {
     UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
