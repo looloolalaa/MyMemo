@@ -246,7 +246,7 @@ struct SecondView: View {
         
     }
     
-    // enter key action
+    // enter key action 
     func changeTitle() {
         // no change
         if item.title == title {
