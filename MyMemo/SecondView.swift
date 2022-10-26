@@ -98,6 +98,7 @@ struct SecondView: View {
             }
             .padding(.top, 10)
             
+            // loading View - activity indicator
             if showingProgress {
                 ProgressView()
                     .padding()
