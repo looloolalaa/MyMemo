@@ -12,6 +12,7 @@ import SwiftUI
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var uiImage: UIImage?
+    let cancelAction: () -> ()
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
@@ -38,9 +39,14 @@ struct ImagePicker: UIViewControllerRepresentable {
         
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             picker.dismiss(animated: true)
-            
-            guard let provider = results.first?.itemProvider else { return }
-            
+
+            // result is empty == cancel button clicked
+            guard let provider = results.first?.itemProvider else {
+                self.parent.cancelAction()
+                return
+            }
+
+            // guaranteed results exist == photo clicked
             if provider.canLoadObject(ofClass: UIImage.self) {
                 provider.loadObject(ofClass: UIImage.self) { image, _ in
                     self.parent.uiImage = image as? UIImage

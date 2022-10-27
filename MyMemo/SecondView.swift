@@ -11,16 +11,20 @@ struct SecondView: View {
     @ObservedObject var memos: Memos
     @State private var title: String
     @State private var text: String
-    @State private var uiImage: UIImage?
     @State private var image: Image?
-    @State private var showingProgress: Bool = false
+    @State var uiImage: UIImage?
+    
     @State private var imageSacle: CGFloat = 1
-    let minScale: CGFloat = 0.5
-    let maxScale: CGFloat = 3
-    @GestureState private var dragOffset = CGSize.zero
+    @State private var imageOffset: (width: CGFloat, height: CGFloat) = (0, 0)
+    let minImageScale: CGFloat = 0.5
+    let maxImageScale: CGFloat = 3
+    let minImageOffset: CGFloat = -100
+    let maxImageOffset: CGFloat = 100
+    let backGestureThreshold: CGFloat = 50
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     // back func
     
+    @State private var showingProgress: Bool = false
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker: Bool = false
@@ -114,18 +118,31 @@ struct SecondView: View {
                         .padding([.leading, .bottom, .trailing])
                         .scaleEffect(imageSacle)
                         .gesture(
+                            DragGesture()
+                                .onChanged { gesture in
+                                    imageOffset.width += gesture.translation.width
+                                    imageOffset.height += gesture.translation.height
+                                    if imageOffset.width > maxImageOffset { imageOffset.width = maxImageOffset }
+                                    if imageOffset.width < minImageOffset { imageOffset.width = minImageOffset }
+                                    if imageOffset.height > maxImageOffset { imageOffset.height = maxImageOffset }
+                                    if imageOffset.height < minImageOffset { imageOffset.height = minImageOffset }
+                                }
+                        )
+                        .gesture(
                             MagnificationGesture()
                                 .onChanged { newScale in
-                                    if newScale > maxScale { imageSacle = maxScale }
-                                    else if newScale < minScale { imageSacle = minScale }
+                                    if newScale > maxImageScale { imageSacle = maxImageScale }
+                                    else if newScale < minImageScale { imageSacle = minImageScale }
                                     else { imageSacle = newScale }
                                 }
                         )
                         .onTapGesture {
                             withAnimation {
                                 imageSacle = 1
+                                imageOffset = (0, 0)
                             }
                         }
+                        .offset(x: imageOffset.width, y: imageOffset.height)
                     
                     // image X button
                     Button(action: {
@@ -168,7 +185,11 @@ struct SecondView: View {
                     Button(action: {
                         // dismiss key board
                         textFieldFocused = false
-                        showingImagePicker.toggle()
+                        
+                        showingImagePicker = true
+                        withAnimation {
+                            showingProgress = true
+                        }
                     }) {
                         Image(systemName: "photo")
                             .font(.title2)
@@ -227,24 +248,34 @@ struct SecondView: View {
         .onChange(of: self.uiImage) { _ in
             loadImage()
             memos.changeUIImage(item: item, newUIImage: self.uiImage)
+            
+            withAnimation {
+                imageSacle = 1
+                imageOffset = (0, 0)
+                showingProgress = false
+            }
         }
         .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(uiImage: $uiImage)
+            ImagePicker(uiImage: $uiImage, cancelAction: cancelAction)
         }
         .contentShape(Rectangle())
         
         // back func - left drag gesture
-        .gesture(DragGesture().updating($dragOffset) { (value, state, transaction) in
-            if value.translation.width > 80 {
-                presentationMode.wrappedValue.dismiss()
-            }
-        })
-        .onChange(of: showingImagePicker) { _ in
-            withAnimation {
-                showingProgress = showingImagePicker
-            }
-        }
+        .gesture(
+            DragGesture()
+                .onChanged { gesture in
+                    if gesture.translation.width > backGestureThreshold {
+                        presentationMode.wrappedValue.dismiss()
+                    }
+                }
+        )
         
+    }
+    
+    func cancelAction() {
+        withAnimation {
+            showingProgress = false
+        }
     }
     
     // enter key action 
