@@ -28,6 +28,7 @@ struct SecondView: View {
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
     @State private var showingImagePicker: Bool = false
+    @State private var showingImageLoadFail: Bool = false
     @State private var titleFieldFocus: Bool = false
     @State private var showingDate: Bool = false
     @FocusState private var titleFieldFocused: Bool
@@ -219,6 +220,9 @@ struct SecondView: View {
                         Spacer()
                     }
                     .padding(.leading)
+                    .alert(isPresented: $showingImageLoadFail) {
+                        Alert(title: Text("image load fail"))
+                    }
                     
                     
                 }
@@ -256,7 +260,7 @@ struct SecondView: View {
             }
         }
         .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(uiImage: $uiImage, cancelAction: cancelAction)
+            ImagePicker(uiImage: $uiImage, handlers: ImagePickerHandlers(cancelAction: cancelAction, imageLoadFailAction: imageLoadFailAction))
         }
         .contentShape(Rectangle())
         
@@ -276,6 +280,13 @@ struct SecondView: View {
         withAnimation {
             showingProgress = false
         }
+    }
+    
+    func imageLoadFailAction() {
+        withAnimation {
+            showingProgress = false
+        }
+        showingImageLoadFail.toggle()
     }
     
     // enter key action 

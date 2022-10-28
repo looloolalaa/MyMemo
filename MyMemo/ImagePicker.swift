@@ -10,9 +10,14 @@ import Foundation
 import PhotosUI
 import SwiftUI
 
+struct ImagePickerHandlers {
+    let cancelAction: () -> ()
+    let imageLoadFailAction: () -> ()
+}
+
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var uiImage: UIImage?
-    let cancelAction: () -> ()
+    let handlers: ImagePickerHandlers
     
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -43,16 +48,27 @@ struct ImagePicker: UIViewControllerRepresentable {
 
             // result is empty == cancel button clicked
             guard let provider = results.first?.itemProvider else {
-                self.parent.cancelAction()
+                self.parent.handlers.cancelAction()
                 return
             }
 
             // guaranteed results exist == photo clicked
             if provider.canLoadObject(ofClass: UIImage.self) {
                 provider.loadObject(ofClass: UIImage.self) { image, _ in
-                    self.parent.uiImage = image as? UIImage
+                    if let uiImage = image as? UIImage {
+                        self.parent.uiImage = uiImage
+                        return
+                    } else {
+                        self.parent.handlers.imageLoadFailAction()
+                        return
+                    }
                 }
+            } else {
+                self.parent.handlers.imageLoadFailAction()
+                return
             }
+            
+            
         }
         
     }
