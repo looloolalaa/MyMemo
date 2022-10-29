@@ -13,10 +13,14 @@ import SwiftUI
 struct ImagePickerHandlers {
     let cancelAction: () -> ()
     let imageLoadFailAction: () -> ()
+    let imageLoadTimerInit: () -> ()
+    let imageLoadTimerStart: () -> ()
+    let maxImageLoadTime: Int
 }
 
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var uiImage: UIImage?
+    @Binding var imageLoadBlock: Bool
     let handlers: ImagePickerHandlers
     
     
@@ -46,24 +50,50 @@ struct ImagePicker: UIViewControllerRepresentable {
         func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
             picker.dismiss(animated: true)
 
-            // result is empty == cancel button clicked
+            // cancel button clicked == result is empty
             guard let provider = results.first?.itemProvider else {
                 self.parent.handlers.cancelAction()
                 return
             }
 
-            // guaranteed results exist == photo clicked
+            // photo clicked == guaranteed results exist
             if provider.canLoadObject(ofClass: UIImage.self) {
-                provider.loadObject(ofClass: UIImage.self) { image, _ in
-                    if let uiImage = image as? UIImage {
-                        self.parent.uiImage = uiImage
-                        return
-                    } else {
+                
+                // already in loading first image
+                guard self.parent.imageLoadBlock == false else { return }
+                
+                // can enter loading
+                self.parent.imageLoadBlock = true
+                self.parent.handlers.imageLoadTimerStart()
+                let imageLoadStartTime = CFAbsoluteTimeGetCurrent()
+                
+                // async func
+                provider.loadObject(ofClass: UIImage.self) { image, error in // completionHandler
+                    
+                    // image loading done
+                    let imageLoadEndTime = CFAbsoluteTimeGetCurrent()
+                    let totalImageLoadTime = imageLoadEndTime - imageLoadStartTime
+                    
+                    // time out
+                    guard totalImageLoadTime < Double(self.parent.handlers.maxImageLoadTime) else { return }
+                    
+                    // in time
+                    self.parent.imageLoadBlock = false
+                    self.parent.handlers.imageLoadTimerInit()
+                    
+                    
+                    // load fail
+                    guard error == nil, let uiImage = image as? UIImage else {
                         self.parent.handlers.imageLoadFailAction()
                         return
                     }
+                    
+                    // all success: in time && no error && casting success
+                    self.parent.uiImage = uiImage
+                    return
+                    
                 }
-            } else {
+            } else { // can not load image
                 self.parent.handlers.imageLoadFailAction()
                 return
             }

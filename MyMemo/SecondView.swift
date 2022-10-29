@@ -24,6 +24,7 @@ struct SecondView: View {
     @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     // back func
     
+    @State private var showingTimeOut: Bool = false
     @State private var showingProgress: Bool = false
     @State private var showingAlreadyExist: Bool = false
     @State private var showingConfirmDeleting: Bool = false
@@ -33,6 +34,13 @@ struct SecondView: View {
     @State private var showingDate: Bool = false
     @FocusState private var titleFieldFocused: Bool
     @FocusState private var textFieldFocused: Bool
+    
+    
+    @State var imageLoadBlock: Bool = false
+    @State var imageLoadTimeRemaining: Int = -1
+    let maxImageLoadTime: Int = 5
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    
     
     var item: Memo
     
@@ -102,6 +110,9 @@ struct SecondView: View {
                 
             }
             .padding(.top, 10)
+            .alert(isPresented: $showingTimeOut) {
+                Alert(title: Text("Image loading takes too long"))
+            }
             
             // loading View - activity indicator
             if showingProgress {
@@ -221,7 +232,7 @@ struct SecondView: View {
                     }
                     .padding(.leading)
                     .alert(isPresented: $showingImageLoadFail) {
-                        Alert(title: Text("image load fail"))
+                        Alert(title: Text("Image loading fail"))
                     }
                     
                     
@@ -252,6 +263,7 @@ struct SecondView: View {
         .onChange(of: self.uiImage) { _ in
             loadImage()
             memos.changeUIImage(item: item, newUIImage: self.uiImage)
+            imageLoadTimeRemaining = -1
             
             withAnimation {
                 imageSacle = 1
@@ -260,7 +272,7 @@ struct SecondView: View {
             }
         }
         .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(uiImage: $uiImage, handlers: ImagePickerHandlers(cancelAction: cancelAction, imageLoadFailAction: imageLoadFailAction))
+            ImagePicker(uiImage: $uiImage, imageLoadBlock: $imageLoadBlock, handlers: ImagePickerHandlers(cancelAction: cancelAction, imageLoadFailAction: imageLoadFailAction, imageLoadTimerInit: imageLoadTimerInit, imageLoadTimerStart: imageLoadTimerStart, maxImageLoadTime: maxImageLoadTime))
         }
         .contentShape(Rectangle())
         
@@ -274,15 +286,47 @@ struct SecondView: View {
                 }
         )
         
+        .onReceive(timer) { _ in
+            // count down
+            if imageLoadTimeRemaining > 0 {
+                imageLoadTimeRemaining -= 1
+            }
+            
+            // time out
+            if imageLoadTimeRemaining == 0 {
+                showingTimeOut.toggle()
+                imageLoadTimerInit()
+                // now can load another image
+                imageLoadBlock = false
+                // because 5 seconds count down done
+                
+                withAnimation {
+                    showingProgress = false
+                }
+            }
+        }
+        
+    }
+    
+    func imageLoadTimerInit() {
+        self.imageLoadTimeRemaining = -1
+    }
+    
+    func imageLoadTimerStart() {
+        self.imageLoadTimeRemaining = self.maxImageLoadTime
     }
     
     func cancelAction() {
-        withAnimation {
-            showingProgress = false
+        // someone not in loading
+        if imageLoadBlock == false {
+            withAnimation {
+                showingProgress = false
+            }
         }
     }
     
     func imageLoadFailAction() {
+        imageLoadTimerInit()
         withAnimation {
             showingProgress = false
         }
