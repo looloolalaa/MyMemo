@@ -36,10 +36,10 @@ struct SecondView: View {
     @FocusState private var textFieldFocused: Bool
     
     
-    @State var imageLoadBlock: Bool = false
-    @State var imageLoadTimeRemaining: Int = -1
-    let maxImageLoadTime: Int = 5
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+    @State var imageLoadBlock: Bool = false // some kind of Mutex
+    @State var imageLoadTimeRemaining: Int = -1 // initial value
+    let maxImageLoadTime: Int = 5 // 5 seconds
+    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect() // 1 second
     
     
     var item: Memo
@@ -132,6 +132,10 @@ struct SecondView: View {
                         .gesture(
                             DragGesture()
                                 .onChanged { gesture in
+                                    guard imageSacle > 1 else { return }
+                                    // guard zoom in state
+                                    
+                                    // image move within boundaries
                                     imageOffset.width += gesture.translation.width
                                     imageOffset.height += gesture.translation.height
                                     if imageOffset.width > maxImageOffset { imageOffset.width = maxImageOffset }
@@ -143,18 +147,33 @@ struct SecondView: View {
                         .gesture(
                             MagnificationGesture()
                                 .onChanged { newScale in
+                                    // image zoom within boundaries
                                     if newScale > maxImageScale { imageSacle = maxImageScale }
                                     else if newScale < minImageScale { imageSacle = minImageScale }
                                     else { imageSacle = newScale }
                                 }
                         )
+                        .onTapGesture(count: 2) { // double clicked
+                            if imageSacle > 1 { // zoom in state
+                                withAnimation {
+                                    imageSacle = 1
+                                    imageOffset = (0, 0)
+                                }
+                            } else {
+                                withAnimation {
+                                    imageSacle = 2
+                                }
+                            }
+                        }
                         .onTapGesture {
+                            titleFieldFocused = false
+                            textFieldFocused = false
                             withAnimation {
                                 imageSacle = 1
                                 imageOffset = (0, 0)
                             }
                         }
-                        .offset(x: imageOffset.width, y: imageOffset.height)
+                        .offset(x: imageOffset.width, y: imageOffset.height) // move image
                     
                     // image X button
                     Button(action: {
@@ -165,6 +184,12 @@ struct SecondView: View {
                     }
                     .offset(x: -15, y: -15)
                     
+                }
+                .frame(maxWidth: .infinity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    titleFieldFocused = false
+                    textFieldFocused = false
                 }
                 
             }
@@ -260,7 +285,7 @@ struct SecondView: View {
                 
         }
         .navigationBarHidden(true)
-        .onChange(of: self.uiImage) { _ in
+        .onChange(of: self.uiImage) { _ in // image load success
             loadImage()
             memos.changeUIImage(item: item, newUIImage: self.uiImage)
             imageLoadTimeRemaining = -1
