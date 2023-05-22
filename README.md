@@ -49,3 +49,5 @@
 <img src="screenshots/23.png" width="50%">
 <img src="screenshots/24.png" width="50%">
 <img src="screenshots/25.png" width="50%">
+
+#### 화살표를 눌러 순서를 역순으로 바꿀 수 있습니다.
