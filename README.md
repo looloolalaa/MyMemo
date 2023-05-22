@@ -10,7 +10,7 @@
 <img src="screenshots/3.png" width="50%">
 
 
-- ### 글과 사진을 편집해 보세요.
+- ### 썸네일을 터치하면 세부 내용을 볼 수 있습니다. 글과 사진을 편집해 보세요.
 <img src="screenshots/4.png" width="50%">
 <img src="screenshots/5.png" width="50%">
 <img src="screenshots/6.png" width="50%">
