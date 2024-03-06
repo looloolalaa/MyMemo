@@ -1,4 +1,5 @@
 # My Photo Diary Application
+<p align="center"><img src="https://github.com/looloolalaa/MyMemo/assets/60506170/fffab64d-96a6-4b57-b1c7-bc0fe8be7706"></p>
 
 - ### 플러스 버튼을 눌러서 새로운 글을 추가할 수 있습니다.
 <img src="screenshots/0.png" width="33%"><img src="screenshots/1.png" width="33%"><img src="screenshots/2.png" width="33%">
